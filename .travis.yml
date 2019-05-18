@@ -1,0 +1,40 @@
+language: java
+
+dist: xenial
+
+env:
+  - TRAVIS_JDK=adopt@1.8.202-08
+  - TRAVIS_JDK=adopt-openj9@1.8.212-03
+  - TRAVIS_JDK=adopt@1.11.28-0
+  - TRAVIS_JDK=adopt-openj9@1.11.28-0
+
+before_install: curl -Ls https://git.io/jabba | bash && . ~/.jabba/jabba.sh
+install: jabba install "$TRAVIS_JDK" && jabba use $_ && java -Xmx32m -version
+
+stages:
+  - validations
+  - test
+  - java11
+
+jobs:
+  include:
+    - stage: validations
+      script: mvn checkstyle:check
+      name: "Code validations (format, binary compatibilty, whitesource, etc.)"
+
+    - stage: test
+      script: mvn clean test
+      name: "Run tests for Java 8"
+
+    # Test against Java 11
+    - stage: java11
+      script: mvn clean test
+      env: TRAVIS_JDK=adopt-openj9@1.11.0-2
+      name: "Run tests for Java 11"
+
+cache:
+  directories:
+    - "$HOME/.m2/repository"
+    - "$HOME/.jabba/jdk"
+
+

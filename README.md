@@ -26,7 +26,7 @@ allowed are backwards-compatible additions**
 ```java
 class Main {
   static void main(String[] args) {
-    ZChunkFile zck = ZChunkHeaderFactory.fromFile(inputFile);
+    ZChunkFile zck = ZChunk.fromFile(inputFile);
     boolean isValid = ChecksumUtil.isValid(zck.getHeader());   
   }
 }
@@ -38,7 +38,21 @@ class Main {
 
 ### verifying checksum data
 
-=> TBD
+```java
+class Main {
+  static void main(String[] args) {
+    ZChunkFile zck = ZChunk.fromFile(inputFile);
+    // total file validation (header, all single chunks, all chunk data).
+    boolean isValid = ZChunk.validateFile(inputFile);
+    
+    
+    // partial checksums:
+    boolean isValidHeader = ChecksumUtil.isValidHeader(zck.getHeader(), inputFile);
+    boolean isAllChunksValid = ChecksumUtil.allChunksAreValid(zck.getHeader(), inputFile);
+    boolean isValidData = ChecksumUtil.isValidData(zck.getHeader(), inputFile);
+  }
+}
+```
 
 ### Downloading chunks
 

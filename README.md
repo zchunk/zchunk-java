@@ -1,5 +1,7 @@
 # zchunk-java
 
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0) [![Build Status](https://travis-ci.org/bmhm/zchunk-java.svg?branch=master)](https://travis-ci.org/bmhm/zchunk-java)
+
 zchunk is a compressed file format that splits the file into independent chunks.
 This allows you to only download changed chunks when downloading a new version
 of the file, and also makes zchunk files efficient over rsync.

@@ -19,12 +19,8 @@ stages:
 jobs:
   include:
     - stage: validations
-      script: mvn clean install -DskipTests=true
+      script: mvn -B clean install -DskipTests=true
       name: "Code validations (format, binary compatibilty, whitesource, etc.)"
-
-    - stage: test
-      script: mvn clean test
-      name: "Run tests for every java"
 
 cache:
   directories:

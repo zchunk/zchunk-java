@@ -17,6 +17,7 @@
 package de.bmarwell.zchunk.fileformat;
 
 import static de.bmarwell.zchunk.fileformat.ZChunkConstants.Header.MAX_LEAD_SIZE;
+import static java.util.stream.Collectors.toConcurrentMap;
 
 import de.bmarwell.zchunk.compressedint.CompressedInt;
 import de.bmarwell.zchunk.compressedint.CompressedIntFactory;
@@ -36,6 +37,7 @@ import java.io.RandomAccessFile;
 import java.math.BigInteger;
 import java.nio.channels.Channels;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.logging.Logger;
 
 public final class ZChunkHeaderFactory {
@@ -46,29 +48,11 @@ public final class ZChunkHeaderFactory {
     //
   }
 
-  /**
-   * Reads in a zchunk file.
-   *
-   * <p>The header part will stay in memory (heap).<br>
-   * The data streams and/or chunks will be available as inputstream, but are not
-   * eagerly loaded into memory.</p>
-   *
-   * @param input
-   *     the input file.
-   * @return a {@link ZChunkFile} instance.
-   * @throws InvalidFileException
-   *     if the input file is not a zchunk file.
-   * @throws NullPointerException
-   *     if the input file is {@code null}.
-   */
-  public static ZChunkFile fromFile(final File input) {
-    final ZChunkHeader header = getZChunkFileHeader(input);
-
-    return ImmutableZChunkFile.builder().header(header).build();
-  }
-
-  private static ZChunkHeader getZChunkFileHeader(final File input) {
+  public static ZChunkHeader getZChunkFileHeader(final File input) {
     final ZChunkHeaderLead lead = readFileHeaderLead(input);
+    if (lead.getChecksumType() == HeaderChecksumType.UNKNOWN) {
+      throw new UnsupportedOperationException("Unknown getMessageDigest type: [" + lead.getChecksumType() + "].");
+    }
     final byte[] completeHeader = readCompleteHeader(input, lead);
     final ZChunkHeaderPreface preface = readHeaderPreface(completeHeader, lead);
     final ZChunkHeaderIndex index = readHeaderIndex(completeHeader, lead, preface);
@@ -235,7 +219,8 @@ public final class ZChunkHeaderFactory {
         .dictChecksum(parser.readDictChecksum())
         .dictLength(parser.readDictLength())
         .uncompressedDictLength(parser.readUncompressedDictLength())
-        .addAllChunkInfo(parser.readChunkInfos())
+        .putAllChunkInfo(parser.readChunkInfos().stream()
+            .collect(toConcurrentMap(ZChunkHeaderChunkInfo::getChunkChecksum, Function.identity())))
         .build();
   }
 

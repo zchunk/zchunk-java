@@ -105,7 +105,7 @@ public class ZChunkLeadParser {
 
       final CompressedInt checksumType = CompressedIntFactory.readCompressedInt(bis);
       this.headerSizeOffset = FILE_MAGIC.length + (long) checksumType.getCompressedBytes().length;
-      this.checksumType = HeaderChecksumType.values()[checksumType.getIntValue()];
+      this.checksumType = HeaderChecksumType.find(checksumType.getValue());
 
       return checksumType;
     } catch (final IOException ioEx) {

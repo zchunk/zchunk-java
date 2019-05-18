@@ -16,35 +16,69 @@
 
 package de.bmarwell.zchunk.fileformat;
 
+import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 import java.util.StringJoiner;
+import java.util.logging.Logger;
 
 /**
  * 0 = SHA-1
  * 1 = SHA-256
  */
 public enum HeaderChecksumType {
-  SHA1("SHA-1"),
-  SHA256("SHA-256");
+  UNKNOWN("unknown", -1L, 0),
+  SHA1("SHA-1", 0L, -1),
+  SHA256("SHA-256", 1L, -1);
 
   private final String digestAlgorithm;
   private final int digestLength;
+  /**
+   * Constant and unique value as from {@code codezchunk_format.txt}.
+   */
+  private final long identifier;
 
-  HeaderChecksumType(final String digestAlgorithm) {
+  HeaderChecksumType(final String digestAlgorithm, final long identifier, final int manualDigestLength) {
     try {
       this.digestAlgorithm = digestAlgorithm;
-      this.digestLength = MessageDigest.getInstance(digestAlgorithm).getDigestLength();
+      if (manualDigestLength <= -1) {
+        // use default
+        this.digestLength = MessageDigest.getInstance(digestAlgorithm).getDigestLength();
+      } else {
+        this.digestLength = manualDigestLength;
+      }
+
+      this.identifier = identifier;
     } catch (final NoSuchAlgorithmException algoEx) {
       throw new IllegalArgumentException("Unable to create hashing algorithm: [" + digestAlgorithm + "]. Check your JVM settings.", algoEx);
     }
+  }
+
+  public static HeaderChecksumType find(final BigInteger unsignedLongValue) {
+    if (unsignedLongValue.compareTo(BigInteger.valueOf(Integer.MAX_VALUE)) >= 1) {
+      final String message = String.format("Unknown Checksum type: [%s], exeeds [%d]!", unsignedLongValue.toString(), Integer.MAX_VALUE);
+      Logger.getLogger(HeaderChecksumType.class.getCanonicalName()).warning(message);
+      return UNKNOWN;
+    }
+
+    final long requestedId = unsignedLongValue.longValue();
+
+    return Arrays.stream(values())
+        .filter(algo -> algo.identifier == requestedId)
+        .findFirst()
+        .orElse(UNKNOWN);
   }
 
   public int getDigestLength() {
     return this.digestLength;
   }
 
-  public MessageDigest digest() {
+  public long getIdentifier() {
+    return this.identifier;
+  }
+
+  public MessageDigest getMessageDigest() {
     try {
       return MessageDigest.getInstance(this.digestAlgorithm);
     } catch (final NoSuchAlgorithmException algoEx) {
@@ -57,6 +91,7 @@ public enum HeaderChecksumType {
     return new StringJoiner(", ", HeaderChecksumType.class.getSimpleName() + "[", "]")
         .add("digestAlgorithm=" + this.digestAlgorithm)
         .add("digestLength=" + this.digestLength)
+        .add("identifier=" + this.identifier)
         .add("ordinal=" + this.ordinal())
         .toString();
   }

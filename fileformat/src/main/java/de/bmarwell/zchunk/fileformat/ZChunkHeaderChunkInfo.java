@@ -18,6 +18,7 @@ package de.bmarwell.zchunk.fileformat;
 
 import de.bmarwell.zchunk.compressedint.CompressedInt;
 import de.bmarwell.zchunk.fileformat.util.ByteUtils;
+import java.util.Comparator;
 import java.util.Optional;
 import java.util.StringJoiner;
 import org.immutables.value.Value;
@@ -37,6 +38,8 @@ import org.immutables.value.Value;
 
 @Value.Immutable
 public abstract class ZChunkHeaderChunkInfo {
+
+  public static final Comparator<ZChunkHeaderChunkInfo> INDEX_COMPARATOR = Comparator.comparing(ZChunkHeaderChunkInfo::getCurrentIndex);
 
   public abstract long getCurrentIndex();
 

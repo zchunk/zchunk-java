@@ -16,7 +16,10 @@
 
 package de.bmarwell.zchunk.fileformat.util;
 
+import de.bmarwell.zchunk.compressedint.CompressedInt;
 import de.bmarwell.zchunk.fileformat.OptionalElement;
+import de.bmarwell.zchunk.fileformat.ZChunkHeader;
+import de.bmarwell.zchunk.fileformat.ZChunkHeaderChunkInfo;
 import de.bmarwell.zchunk.fileformat.ZChunkHeaderLead;
 import de.bmarwell.zchunk.fileformat.ZChunkHeaderPreface;
 import java.math.BigInteger;
@@ -71,6 +74,19 @@ public final class OffsetUtil {
     }
 
     return preface.getOptionalElementCount().getCompressedBytes().length;
+  }
+
+  public static long getChunkOffset(final ZChunkHeader zChunkHeader, final long chunkId) {
+    final long totalHeaderSize = OffsetUtil.getTotalHeaderSize(zChunkHeader.getLead());
+    final CompressedInt dictLength = zChunkHeader.getIndex().getDictLength();
+
+    final long chunkOffset = zChunkHeader.getIndex().getChunkInfoSortedByIndex().stream()
+        .limit(chunkId)
+        .map(ZChunkHeaderChunkInfo::getChunkLength)
+        .mapToLong(CompressedInt::getLongValue)
+        .sum();
+
+    return totalHeaderSize + dictLength.getLongValue() + chunkOffset;
   }
 
 }

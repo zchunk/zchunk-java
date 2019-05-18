@@ -29,13 +29,19 @@ public class ZChunkFileTest {
 
   private static final Logger LOG = Logger.getLogger(ZChunkFileTest.class.getCanonicalName());
 
-  private static final File TEST_FILE = new File(ZChunkFileTest.class.getResource("/testfiles/LICENSE.dict.fodt.zck").getPath());
-  private static final File TEST_FILE_INVALID = new File(
+  public static final File TEST_FILE = new File(ZChunkFileTest.class.getResource("/testfiles/LICENSE.dict.fodt.zck").getPath());
+
+  public static final File TEST_FILE_INVALID = new File(
       ZChunkFileTest.class.getResource("/testfiles/LICENSE.dict.fodt.zck.invalid").getPath());
+  public static final File TEST_FILE_HEADER_CKSUM_INVALID = new File(
+      ZChunkFileTest.class.getResource("/testfiles/LICENSE.dict.fodt.header-cksum-invalid.zck").getPath());
+
+  public static final File TEST_FILE_HEADER_DIGEST_INVALID = new File(
+      ZChunkFileTest.class.getResource("/testfiles/LICENSE.dict.fodt.digest-invalid.zck").getPath());
 
   @Test
   public void testFileFormat() {
-    final ZChunkFile zChunkFile = ZChunkHeaderFactory.fromFile(TEST_FILE);
+    final ZChunkFile zChunkFile = ZChunk.fromFile(TEST_FILE);
 
     final ZChunkHeader header = zChunkFile.getHeader();
 
@@ -53,7 +59,7 @@ public class ZChunkFileTest {
 
     Assertions.assertAll(
         () -> Assertions.assertArrayEquals(exp, actual),
-        () -> Assertions.assertTrue(ChecksumUtil.isValid(header))
+        () -> Assertions.assertTrue(ChecksumUtil.isValidHeader(header))
     );
   }
 
@@ -61,7 +67,7 @@ public class ZChunkFileTest {
   public void testInvalidFile() {
     Assertions.assertAll(
         () -> Assertions.assertThrows(IllegalArgumentException.class, () -> ZChunkHeaderFactory.readFileHeaderLead(TEST_FILE_INVALID)),
-        () -> Assertions.assertThrows(IllegalArgumentException.class, () -> ZChunkHeaderFactory.fromFile(TEST_FILE_INVALID))
+        () -> Assertions.assertThrows(IllegalArgumentException.class, () -> ZChunk.fromFile(TEST_FILE_INVALID))
     );
   }
 
@@ -70,7 +76,7 @@ public class ZChunkFileTest {
 
     Assertions.assertAll(
         () -> Assertions.assertArrayEquals(ZChunkConstants.Header.FILE_MAGIC, lead.getId()),
-        () -> Assertions.assertEquals(1, lead.getChecksumType().ordinal()),
+        () -> Assertions.assertEquals(1L, lead.getChecksumType().getIdentifier()),
         () -> Assertions.assertEquals(394L, lead.getHeaderSize().getLongValue()),
         () -> Assertions.assertEquals(394, lead.getHeaderSize().getIntValue()),
         // TODO: 434 (reported by zck_read_header) vs 432 (this implementation).

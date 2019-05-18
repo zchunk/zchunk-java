@@ -20,27 +20,38 @@ import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toList;
 
 import de.bmarwell.zchunk.fileformat.HeaderChecksumType;
+import de.bmarwell.zchunk.fileformat.PrefaceFlag;
 import de.bmarwell.zchunk.fileformat.ZChunkHeader;
 import de.bmarwell.zchunk.fileformat.ZChunkHeaderChunkInfo;
 import de.bmarwell.zchunk.fileformat.ZChunkHeaderIndex;
 import de.bmarwell.zchunk.fileformat.ZChunkHeaderLead;
 import de.bmarwell.zchunk.fileformat.ZChunkHeaderPreface;
 import de.bmarwell.zchunk.fileformat.ZChunkHeaderSignatures;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.security.MessageDigest;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public final class ChecksumUtil {
 
   private static final Logger LOG = Logger.getLogger(ChecksumUtil.class.getCanonicalName());
 
+  /**
+   * Buffer size for reading files.
+   */
+  private static final int BUFFER_SIZE = 1024;
+
   private ChecksumUtil() {
     // util
   }
 
-  public static boolean isValid(final ZChunkHeader header) {
+  public static boolean isValidHeader(final ZChunkHeader header) {
     final byte[] expectedChecksum = header.getLead().getChecksum();
     final byte[] calculatedChecksum = calculateHeaderChecksum(header);
 
@@ -49,7 +60,7 @@ public final class ChecksumUtil {
 
   public static byte[] calculateHeaderChecksum(final ZChunkHeader header) {
     final HeaderChecksumType digestAlgorithm = header.getLead().getChecksumType();
-    final MessageDigest digest = digestAlgorithm.digest();
+    final MessageDigest digest = digestAlgorithm.getMessageDigest();
 
     digest.update(getLeadBytes(header.getLead()));
     digest.update(getPrefaceBytes(header.getPreface()));
@@ -81,7 +92,8 @@ public final class ChecksumUtil {
   }
 
   private static byte[] getIndexBytes(final ZChunkHeaderIndex index) {
-    final byte[] chunkInfos = getChunkInfoBytes(index.getChunkInfo());
+
+    final byte[] chunkInfos = getChunkInfoBytes(index.getChunkInfoSortedByIndex());
 
     final byte[] indexBytes = concat(
         index.getIndexSize().getCompressedBytes(),
@@ -97,7 +109,7 @@ public final class ChecksumUtil {
     return indexBytes;
   }
 
-  private static byte[] getChunkInfoBytes(final List<ZChunkHeaderChunkInfo> chunkInfos) {
+  private static byte[] getChunkInfoBytes(final Collection<ZChunkHeaderChunkInfo> chunkInfos) {
     final List<byte[]> collect = chunkInfos.stream()
         .map(ChecksumUtil::getChunkInfoBytes)
         .collect(toList());
@@ -167,4 +179,55 @@ public final class ChecksumUtil {
   }
 
 
+  public static boolean isValidData(final ZChunkHeader zChunkHeader, final File fileToCheck) {
+    if (zChunkHeader.getPreface().getPrefaceFlags().contains(PrefaceFlag.HAS_DATA_STREAMS)) {
+      throw new UnsupportedOperationException("Data streams not supported yet.");
+    }
+
+    final int totalHeaderSize = OffsetUtil.getTotalHeaderSize(zChunkHeader.getLead());
+    final HeaderChecksumType chunkChecksumType = zChunkHeader.getLead().getChecksumType();
+    final MessageDigest messageDigest = chunkChecksumType.getMessageDigest();
+
+    try (final FileInputStream fis = new FileInputStream(fileToCheck)) {
+      fis.skip(totalHeaderSize);
+      final byte[] buffer = new byte[BUFFER_SIZE];
+      int read = 0;
+      while ((read = fis.read(buffer)) == BUFFER_SIZE) {
+        messageDigest.update(buffer);
+      }
+      final byte[] lastChunk = new byte[read];
+      System.arraycopy(buffer, 0, lastChunk, 0, read);
+      messageDigest.update(lastChunk);
+
+      final byte[] expected = zChunkHeader.getPreface().getTotalDataChecksum();
+      final byte[] actual = messageDigest.digest();
+
+      return Arrays.equals(expected, actual);
+    } catch (final IOException ioEx) {
+      LOG.log(Level.SEVERE, ioEx, () -> "Unable to seek [" + totalHeaderSize + "] bytes into the file.");
+      return false;
+    }
+
+  }
+
+  public static boolean allChunksAreValid(final ZChunkHeader zChunkFile, final File file) {
+    return zChunkFile.getIndex().getChunkInfoSortedByIndex().stream()
+        .allMatch(chunk -> chunkIsValid(chunk, zChunkFile, file));
+  }
+
+  private static boolean chunkIsValid(final ZChunkHeaderChunkInfo chunk, final ZChunkHeader zChunkFile, final File file) {
+    final long chunkOffset = OffsetUtil.getChunkOffset(zChunkFile, chunk.getCurrentIndex());
+
+    try (final FileInputStream fis = new FileInputStream(file)) {
+      fis.skip(chunkOffset);
+      final byte[] chunkData = new byte[chunk.getChunkLength().getIntValue()];
+      fis.read(chunkData);
+      final byte[] digest = zChunkFile.getIndex().getChunkChecksumType().digest(chunkData);
+
+      return Arrays.equals(chunk.getChunkChecksum(), digest);
+    } catch (final IOException ioEx) {
+      LOG.log(Level.SEVERE, ioEx, () -> "Unable to seek [" + chunkOffset + "] bytes into the file.");
+      return false;
+    }
+  }
 }

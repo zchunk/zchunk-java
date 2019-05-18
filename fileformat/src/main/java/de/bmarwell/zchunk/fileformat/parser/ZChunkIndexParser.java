@@ -176,7 +176,7 @@ public final class ZChunkIndexParser {
     }
   }
 
-  public Iterable<? extends ZChunkHeaderChunkInfo> readChunkInfos() {
+  public List<? extends ZChunkHeaderChunkInfo> readChunkInfos() {
     if (this.chunkStreamOffset == -1L) {
       readUncompressedDictLength();
     }

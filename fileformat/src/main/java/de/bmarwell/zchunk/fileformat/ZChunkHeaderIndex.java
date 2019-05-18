@@ -18,9 +18,13 @@ package de.bmarwell.zchunk.fileformat;
 
 import de.bmarwell.zchunk.compressedint.CompressedInt;
 import de.bmarwell.zchunk.fileformat.util.ByteUtils;
-import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.StringJoiner;
+import java.util.TreeSet;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import org.immutables.value.Value;
 
 /**
@@ -80,7 +84,17 @@ public abstract class ZChunkHeaderIndex {
 
   public abstract CompressedInt getUncompressedDictLength();
 
-  public abstract List<ZChunkHeaderChunkInfo> getChunkInfo();
+  public abstract Map<byte[], ZChunkHeaderChunkInfo> getChunkInfo();
+
+  @Value.Lazy
+  public Set<ZChunkHeaderChunkInfo> getChunkInfoSortedByIndex() {
+    final Supplier<Set<ZChunkHeaderChunkInfo>> IndexSortedList = () -> new TreeSet<>(ZChunkHeaderChunkInfo.INDEX_COMPARATOR);
+
+    return getChunkInfo().values()
+        .stream()
+        .sorted(ZChunkHeaderChunkInfo.INDEX_COMPARATOR)
+        .collect(Collectors.toCollection(IndexSortedList));
+  }
 
   @Override
   public String toString() {

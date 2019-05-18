@@ -41,7 +41,7 @@ public abstract class ZChunkHeaderLead {
 
   @Value.Derived
   public HeaderChecksumType getChecksumType() {
-    return HeaderChecksumType.values()[getChecksumTypeInt().getIntValue()];
+    return HeaderChecksumType.find(getChecksumTypeInt().getValue());
   }
 
   /**

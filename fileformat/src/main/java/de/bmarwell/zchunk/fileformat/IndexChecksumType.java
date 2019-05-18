@@ -33,16 +33,16 @@ public enum IndexChecksumType {
   SHA512("SHA-512", -1),
   SHA512_128("SHA-512", 16);
 
-  private final MessageDigest digestAlgorithm;
+  private final String digestAlgorithm;
   private final int length;
 
   IndexChecksumType(final String digestAlgorithm, final int length) {
     try {
-      this.digestAlgorithm = MessageDigest.getInstance(digestAlgorithm);
+      this.digestAlgorithm = digestAlgorithm;
       if (length != -1) {
         this.length = length;
       } else {
-        this.length = this.digestAlgorithm.getDigestLength();
+        this.length = MessageDigest.getInstance(digestAlgorithm).getDigestLength();
       }
     } catch (final NoSuchAlgorithmException algoEx) {
       throw new IllegalArgumentException("Unable to create hashing algorithm: [" + digestAlgorithm + "]. Check your JVM settings.", algoEx);
@@ -54,9 +54,9 @@ public enum IndexChecksumType {
   }
 
   public byte[] digest(final byte[] input) {
-    final byte[] digest = this.digestAlgorithm.digest(input);
+    final byte[] digest = this.getMessageDigest().digest(input);
 
-    if (this.length != this.digestAlgorithm.getDigestLength()) {
+    if (this.length != getMessageDigest().getDigestLength()) {
       final byte[] actualDigest = new byte[this.length];
       System.arraycopy(digest, 0, actualDigest, 0, this.length);
       return actualDigest;
@@ -65,10 +65,18 @@ public enum IndexChecksumType {
     return digest;
   }
 
+  public MessageDigest getMessageDigest() {
+    try {
+      return MessageDigest.getInstance(this.digestAlgorithm);
+    } catch (final NoSuchAlgorithmException algoEx) {
+      throw new IllegalStateException("Unable to create message getMessageDigest instance!", algoEx);
+    }
+  }
+
   @Override
   public String toString() {
     return new StringJoiner(", ", IndexChecksumType.class.getSimpleName() + "[", "]")
-        .add("digestAlgorithm=" + this.digestAlgorithm.getAlgorithm())
+        .add("digestAlgorithm=" + this.digestAlgorithm)
         .add("actualChecksumLength=" + this.length)
         .add("ordinal=" + this.ordinal())
         .toString();

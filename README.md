@@ -57,8 +57,8 @@ class Main {
 ### Downloading chunks
 
   * locally
-  * Over ssh/scp
   * Over HTTPS and HTTP/2.0
+  * Over ssh/scp
     * This is not even implemented in the original code.
     * This can be done by executing `dd if=file bs=1 count=X` or similar.
   

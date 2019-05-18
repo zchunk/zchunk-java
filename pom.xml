@@ -94,6 +94,11 @@
             <!-- prevents endPosTable exception for maven compile due to annotation processing,
               see http://immutables.github.io/getstarted.html -->
             <!-- <useIncrementalCompilation>false</useIncrementalCompilation> -->
+            <showDeprecation>true</showDeprecation>
+            <showWarnings>true</showWarnings>
+            <compilerArgs>
+              <arg>-Xlint:all,-processing</arg>
+            </compilerArgs>
           </configuration>
         </plugin>
 
@@ -107,8 +112,51 @@
             </systemPropertyVariables>
           </configuration>
         </plugin>
+
+        <!-- maven checkstyle -->
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-checkstyle-plugin</artifactId>
+          <version>3.0.0</version>
+          <configuration>
+            <configLocation>
+              ${maven.multiModuleProjectDirectory}/build/checkstyle/checkstyle.xml
+            </configLocation>
+            <headerLocation>
+              ${maven.multiModuleProjectDirectory}/build/checkstyle/header.txt
+            </headerLocation>
+            <encoding>UTF-8</encoding>
+            <consoleOutput>true</consoleOutput>
+            <failOnViolation>true</failOnViolation>
+            <failsOnError>false</failsOnError>
+          </configuration>
+          <dependencies>
+            <dependency>
+              <groupId>com.puppycrawl.tools</groupId>
+              <artifactId>checkstyle</artifactId>
+              <version>8.20</version>
+            </dependency>
+          </dependencies>
+        </plugin>
       </plugins>
     </pluginManagement>
+
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+        <version>3.0.0</version>
+        <executions>
+          <execution>
+            <id>checkstyle-check</id>
+            <phase>validate</phase>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
   </build>
 
 </project>

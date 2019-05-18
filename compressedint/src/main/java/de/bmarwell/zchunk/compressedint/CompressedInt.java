@@ -21,6 +21,11 @@ import org.immutables.value.Value;
 
 public interface CompressedInt {
 
+  /**
+   * Return the compressed int as compressed bytes. This is useful to determine the original arrray length.
+   *
+   * @return the compressed int as bytes.
+   */
   byte[] getCompressedBytes();
 
   /**
@@ -31,12 +36,33 @@ public interface CompressedInt {
   @Value.Lazy
   BigInteger getValue();
 
+  /**
+   * Returns the value as signed(!) long value. As the compressedInt value may exceed {@link Long#MAX_VALUE}, it might throw an {@link
+   * ArithmeticException}.
+   *
+   * @return the value as signed long (normal java use).
+   * @throws ArithmeticException
+   *     if the value exceeds {@link Long#MAX_VALUE}.
+   */
   @Value.Lazy
   long getLongValue();
 
+  /**
+   * Returns the value as <b>unsigned</b> long value, so that it can overflow.
+   *
+   * <p>If your input value was {@code 0xffffffffffffffff}, this method will throw no exception and happily overflow and return {@code
+   * -1L}.</p>
+   */
   @Value.Lazy
   long getUnsignedLongValue();
 
+  /**
+   * Tries to fit the value into an int. As int conversion is often needed for array indexing, this will always throw an {@link
+   * ArithmeticException}, if
+   * the content value does not fit into a signed integer.
+   *
+   * @return an int representing the {@link #getValue()} value.
+   */
   @Value.Lazy
   int getIntValue();
 }

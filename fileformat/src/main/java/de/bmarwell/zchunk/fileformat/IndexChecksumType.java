@@ -21,11 +21,15 @@ import java.security.NoSuchAlgorithmException;
 import java.util.StringJoiner;
 
 /**
+ * Checksum type for everything in the index.
+ *
+ * <p>
  * Current values:
- * 0 = SHA-1
- * 1 = SHA-256
- * 2 = SHA-512
- * 3 = SHA-512/128 (first 128 bits of SHA-512 checksum)
+ * 0 = SHA-1<br>
+ * 1 = SHA-256<br>
+ * 2 = SHA-512<br>
+ * 3 = SHA-512/128 (first 128 bits of SHA-512 checksum)<br>
+ * </p>
  */
 public enum IndexChecksumType {
   SHA1("SHA-1", -1),

@@ -24,7 +24,7 @@ import java.util.StringJoiner;
 import org.immutables.value.Value;
 
 /**
- * The lead:<br>
+ * The lead.
  *
  * <p><code>
  * +-+-+-+-+-+====================+==================+=================+<br>

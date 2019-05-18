@@ -45,7 +45,14 @@ public final class CompressedIntUtil {
     // private util
   }
 
-
+  /**
+   * Compress a long to a compressed int. The long will be interpreted as positive, which may be confusing.
+   *
+   * <p>E.g. All positive numbers will come out as expected. All negative numbers will exceed that value.
+   * The highest number you can convert is -{@code -1L}, which is interpreted as {@code 18446744073709551615 (2^64 - 1)}.</p>
+   *
+   * @return a byte array which will never exceed the length of MAX_COMPRESSED_INT_LENGTH and will never have leading all-zero bytes.
+   */
   public static byte[] compress(final long unsignedIntValue) {
     long modValue = unsignedIntValue;
     final byte[] tmp = new byte[MAX_COMPRESSED_INT_LENGTH];
@@ -73,6 +80,18 @@ public final class CompressedIntUtil {
     return out;
   }
 
+  /**
+   * Decompresses an unsignedint's bytevalue.
+   *
+   * <p>The result is stored as {@link BigInteger}, because values might exceed overflow {@link Long#MAX_VALUE} and end up as
+   * negative. With BigInteger, no such information is lost.</p>
+   *
+   * @param compressedUnsignedInt
+   *     the bytearray holding a compressed int to decompress.
+   * @return a {@link BigInteger} object holding the uncompressed unsigned int value.
+   * @throws IllegalArgumentException
+   *     if parameter {@code compressedUnsignedInt::length} exceeds the value of {@link #MAX_COMPRESSED_INT_LENGTH}.
+   */
   public static BigInteger decompress(final byte[] compressedUnsignedInt) {
     if (compressedUnsignedInt.length > MAX_COMPRESSED_INT_LENGTH) {
       throw new IllegalArgumentException("Compressed int too big!");

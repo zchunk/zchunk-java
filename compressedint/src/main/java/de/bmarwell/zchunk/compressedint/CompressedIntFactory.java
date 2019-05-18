@@ -25,6 +25,19 @@ public final class CompressedIntFactory {
     // util class
   }
 
+  /**
+   * Try to parse a compressed in from a given byte array.
+   *
+   * @param input
+   *     the input byte array.
+   * @return a compressed int if it was parseable.
+   * @throws IllegalArgumentException
+   *     if the byte array has zero-length.
+   * @throws IllegalArgumentException
+   *     if the byte array length (byte count) is larger than {@link CompressedIntUtil#MAX_COMPRESSED_INT_LENGTH}.
+   * @throws NullPointerException
+   *     if input is {@code null}.
+   */
   public static CompressedInt fromCompressedBytes(final byte[] input) {
     if (input.length > CompressedIntUtil.MAX_COMPRESSED_INT_LENGTH) {
       throw new IllegalArgumentException(
@@ -52,6 +65,19 @@ public final class CompressedIntFactory {
     return fromCompressedBytes(unsignedBytes);
   }
 
+  /**
+   * Directly takes an open {@link InputStream} and tries to read as many bytes as it takes for the compressed integer to end.
+   *
+   * <p>Does not close the stream. That is the caller‘s responsibility.</p>
+   *
+   * @param inputStream
+   *     the not-closed stream to read from.
+   * @return a compresssed int.
+   * @throws IOException
+   *     if we cannot read from the underlying stream.
+   * @throws IllegalArgumentException
+   *     if the compressed int size (bytes read) will exceed {@link CompressedIntUtil#MAX_COMPRESSED_INT_LENGTH}.
+   */
   public static CompressedInt readCompressedInt(final InputStream inputStream) throws IOException {
     int currentByte;
     int byteCounter = 0;

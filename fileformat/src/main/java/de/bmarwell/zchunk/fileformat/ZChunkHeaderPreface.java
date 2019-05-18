@@ -31,7 +31,6 @@ import org.immutables.value.Value;
  * +===============+============+========================+<br>
  * <br>
  * (Optional elements will only be set if flag 1 is set to 1)<br>
- * <code>
  * +=============================+<br>
  * | Optional element count (ci) |<br>
  * +=============================+<br>

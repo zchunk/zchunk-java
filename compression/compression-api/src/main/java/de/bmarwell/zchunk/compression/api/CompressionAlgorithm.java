@@ -24,9 +24,23 @@ import org.immutables.value.Value;
 @Value.Immutable
 public interface CompressionAlgorithm {
 
+  /**
+   * The type value as defined by {@code zchunk_format.txt}.
+   *
+   * @return the compressiontype as CompressedInt.
+   */
   CompressedInt getCompressionTypeValue();
 
+  /**
+   * A user-friendly name of the compression algorithm.
+   *
+   * @return the name of the compression algorithm.
+   */
   String getName();
 
+  /**
+   * A method that will take in a stream and output an uncompressed stream.
+   * @return a stream conversion method.
+   */
   Function<InputStream, InputStream> getOutputStreamSupplier();
 }

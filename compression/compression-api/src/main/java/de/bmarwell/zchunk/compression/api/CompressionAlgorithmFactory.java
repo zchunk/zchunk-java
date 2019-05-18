@@ -42,6 +42,15 @@ public final class CompressionAlgorithmFactory {
         .orElse(null);
   }
 
+  /**
+   * Tries to load a compression algorithm. If it fails, it will return {@link UnknownAlgorithm}.
+   *
+   * <p><b>Warning!</b> Unstable API, this might change to Optional some day.</p>
+   *
+   * @param compressionType
+   *     the compression type value as defined in {@code zchunk_format.txt}.
+   * @return a compression algorithm which can decompress an input stream.
+   */
   public static CompressionAlgorithm forType(final long compressionType) {
     return Optional.ofNullable(getTypeMappings().get(compressionType))
         .flatMap(ReflectionUtil::newInstance)

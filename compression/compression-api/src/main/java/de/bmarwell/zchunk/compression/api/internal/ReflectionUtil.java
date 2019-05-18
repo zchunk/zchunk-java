@@ -43,6 +43,17 @@ public final class ReflectionUtil {
     // util
   }
 
+  /**
+   * Will try to load classes implementing clazz, from any package below rootpackage.
+   *
+   * @param rootPackage
+   *     the root package to search in.
+   * @param clazz
+   *     the class which should be implemented by the found classes.
+   * @param <T>
+   *     the class type.
+   * @return a list of classes implementing T / clazz.
+   */
   public static <T> List<Class<T>> loadImplementations(final String rootPackage, final Class<T> clazz) {
     final List<Class<T>> classes = getClasses(rootPackage, clazz);
 
@@ -136,6 +147,15 @@ public final class ReflectionUtil {
         .orElseGet(Collections::emptyList);
   }
 
+  /**
+   * Tries to create a new instance using the default constructor.
+   *
+   * @param clazz
+   *     the class to instantiate.
+   * @param <T>
+   *     the class type.
+   * @return {@link Optional#empty} if it did not succeed, Optional with an instance otherwise.
+   */
   public static <T> Optional<T> newInstance(final Class<T> clazz) {
     try {
       return Optional.of(clazz.newInstance());

@@ -28,6 +28,8 @@ import java.util.stream.Collectors;
 import org.immutables.value.Value;
 
 /**
+ * Header index.
+ *
  * <pre>
  * +=================+==========================+==================+
  * | Index size (ci) | Chunk checksum type (ci) | Chunk count (ci) |

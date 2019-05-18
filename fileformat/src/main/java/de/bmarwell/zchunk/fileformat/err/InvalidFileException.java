@@ -23,6 +23,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 
 public class InvalidFileException extends RuntimeException {
 
+  private static final long serialVersionUID = -1329481614175727163L;
+
   private final @Nullable File sourceFile;
 
   public InvalidFileException(final String message) {

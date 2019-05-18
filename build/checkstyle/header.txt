@@ -13,30 +13,3 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package de.bmarwell.zchunk.fileformat;
-
-import org.immutables.value.Value;
-
-/**
- * The header consists of four parts.
- *
- * <ul>
- * <li>The lead: Everything necessary to validate the header.</li>
- * <li>The preface: Metadata about the zchunk file.</li>
- * <li>The index: Details about each chunk.</li>
- * <li>The signatures: Signatures used to sign the zchunk file.</li>
- * </ul>
- */
-@Value.Immutable
-public interface ZChunkHeader {
-
-  ZChunkHeaderLead getLead();
-
-  ZChunkHeaderPreface getPreface();
-
-  ZChunkHeaderIndex getIndex();
-
-  ZChunkHeaderSignatures getSignatures();
-
-}

@@ -135,10 +135,10 @@ public final class ChecksumUtil {
     );
 
     if (preface.hasOptionalElements()) {
+      // TODO: optional elements header
       final byte[] prefaceWithOptional = concat(
           prefaceBytes,
           preface.getOptionalElementCount().getCompressedBytes()
-          // TODO: optional elements header
       );
 
       return prefaceWithOptional;
@@ -210,19 +210,19 @@ public final class ChecksumUtil {
 
   }
 
-  public static boolean allChunksAreValid(final ZChunkHeader zChunkFile, final File file) {
-    return zChunkFile.getIndex().getChunkInfoSortedByIndex().stream()
-        .allMatch(chunk -> chunkIsValid(chunk, zChunkFile, file));
+  public static boolean allChunksAreValid(final ZChunkHeader zchunkFile, final File file) {
+    return zchunkFile.getIndex().getChunkInfoSortedByIndex().stream()
+        .allMatch(chunk -> chunkIsValid(chunk, zchunkFile, file));
   }
 
-  private static boolean chunkIsValid(final ZChunkHeaderChunkInfo chunk, final ZChunkHeader zChunkFile, final File file) {
-    final long chunkOffset = OffsetUtil.getChunkOffset(zChunkFile, chunk.getCurrentIndex());
+  private static boolean chunkIsValid(final ZChunkHeaderChunkInfo chunk, final ZChunkHeader zchunkFile, final File file) {
+    final long chunkOffset = OffsetUtil.getChunkOffset(zchunkFile, chunk.getCurrentIndex());
 
     try (final FileInputStream fis = new FileInputStream(file)) {
       fis.skip(chunkOffset);
       final byte[] chunkData = new byte[chunk.getChunkLength().getIntValue()];
       fis.read(chunkData);
-      final byte[] digest = zChunkFile.getIndex().getChunkChecksumType().digest(chunkData);
+      final byte[] digest = zchunkFile.getIndex().getChunkChecksumType().digest(chunkData);
 
       return Arrays.equals(chunk.getChunkChecksum(), digest);
     } catch (final IOException ioEx) {

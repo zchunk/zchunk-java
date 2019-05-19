@@ -47,10 +47,13 @@ jobs:
       name: "Checker framework (Nullness checker)."
       script: ./mvnw -B clean install -DskipTests=true -Pchecker
 
+    - stage: test
+      name: "Test build with coverage report"
+      script: ./mvnw -B clean install -DskipTests=true -Pchecker
+      after_success: bash <(curl -s https://codecov.io/bash)
+
 cache:
   directories:
     - "$HOME/.m2/repository"
     - "$HOME/.jabba/jdk"
 
-after_success:
-  - bash <(curl -s https://codecov.io/bash)

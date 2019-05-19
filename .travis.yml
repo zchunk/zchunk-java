@@ -5,8 +5,14 @@ dist: xenial
 env:
   - TRAVIS_JDK=adopt@1.8.202-08
   - TRAVIS_JDK=adopt-openj9@1.8.212-03
+  - TRAVIS_JDK=ibm@1.8.0-5.35
+  - TRAVIS_JDK=amazon-corretto@1.8.212-04.2
+  # Java 11 JVMs
   - TRAVIS_JDK=adopt@1.11.28-0
   - TRAVIS_JDK=adopt-openj9@1.11.28-0
+  - TRAVIS_JDK=1.11.0-3
+  - TRAVIS_JDK=openjdk@1.11.0-2
+  - TRAVIS_JDK=amazon-corretto@1.11.0-3.7.1
 
 before_install: curl -Ls https://git.io/jabba | bash && . ~/.jabba/jabba.sh
 

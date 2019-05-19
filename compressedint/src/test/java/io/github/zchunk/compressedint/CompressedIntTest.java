@@ -59,6 +59,7 @@ public class CompressedIntTest {
     final CompressedInt bytes = CompressedIntFactory.valueOf(unsignedLongValue);
 
     final String binaryString = byteArrayToBinaryString(bytes.getCompressedBytes());
+    System.out.println("" + new BigInteger(1, bytes.getCompressedBytes()).toString(16));
 
     Assertions.assertEquals("1111111011111110111111101111111011111110111111101111111011111110111111110000001", binaryString);
   }
@@ -144,6 +145,23 @@ public class CompressedIntTest {
   }
 
   @Test
+  public void testUnsignedIntMax() {
+    final BigInteger maxUnsignedInt = new BigInteger("4294967295", 10);
+    final CompressedInt compressedInt = CompressedIntFactory.valueOf(maxUnsignedInt.longValueExact());
+
+    Assertions.assertEquals("7f7f7f7f8f", new BigInteger(1, compressedInt.getCompressedBytes()).toString(16));
+  }
+
+  @Test
+  public void testLongValue() {
+    final long maxUnsingnedIntAsLong = 4_294_967_295L;
+    final CompressedInt compressedInt = CompressedIntFactory.valueOf(maxUnsingnedIntAsLong);
+
+    Assertions.assertEquals("7f7f7f7f8f", new BigInteger(1, compressedInt.getCompressedBytes()).toString(16));
+
+  }
+
+  @Test
   public void testExceptionOnBigLongToInt() {
     final CompressedInt compressedInt = CompressedIntFactory.valueOf(0xffffffff00ffffL);
 
@@ -162,6 +180,7 @@ public class CompressedIntTest {
     final CompressedInt compressedInt = CompressedIntFactory.valueOf(-1L);
 
     Assertions.assertEquals(-1L, compressedInt.getUnsignedLongValue());
+    Assertions.assertEquals("7f7f7f7f7f7f7f7f7f81", new BigInteger(1, compressedInt.getCompressedBytes()).toString(16));
   }
 
   @Test

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package de.bmarwell.zchunk.fileformat;
+package io.github.zchunk.fileformat;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;

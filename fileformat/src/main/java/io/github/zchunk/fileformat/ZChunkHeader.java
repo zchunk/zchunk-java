@@ -14,18 +14,29 @@
  * limitations under the License.
  */
 
-package io.github.zchunk.compression.api;
+package io.github.zchunk.fileformat;
 
-import io.github.zchunk.compression.algo.unknown.UnknownAlgorithm;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
+import org.immutables.value.Value;
 
-public class CompressionAlgorithmFactoryTest {
+/**
+ * The header consists of four parts.
+ *
+ * <ul>
+ * <li>The lead: Everything necessary to validate the header.</li>
+ * <li>The preface: Metadata about the zchunk file.</li>
+ * <li>The index: Details about each chunk.</li>
+ * <li>The signatures: Signatures used to sign the zchunk file.</li>
+ * </ul>
+ */
+@Value.Immutable
+public interface ZChunkHeader {
 
-  @Test
-  public void testGetUnknown() {
-    final CompressionAlgorithm algorithm = CompressionAlgorithmFactory.forType(-1L);
+  ZChunkHeaderLead getLead();
 
-    Assertions.assertEquals(algorithm.getClass(), UnknownAlgorithm.class);
-  }
+  ZChunkHeaderPreface getPreface();
+
+  ZChunkHeaderIndex getIndex();
+
+  ZChunkHeaderSignatures getSignatures();
+
 }

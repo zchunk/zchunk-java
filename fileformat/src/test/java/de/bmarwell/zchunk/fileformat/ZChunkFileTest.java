@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package de.bmarwell.zchunk.fileformat;
+package io.github.zchunk.fileformat;
 
-import de.bmarwell.zchunk.fileformat.util.ByteUtils;
-import de.bmarwell.zchunk.fileformat.util.ChecksumUtil;
-import de.bmarwell.zchunk.fileformat.util.OffsetUtil;
+import io.github.zchunk.fileformat.util.ByteUtils;
+import io.github.zchunk.fileformat.util.ChecksumUtil;
+import io.github.zchunk.fileformat.util.OffsetUtil;
 import java.io.File;
 import java.util.logging.Logger;
 import org.junit.jupiter.api.Assertions;

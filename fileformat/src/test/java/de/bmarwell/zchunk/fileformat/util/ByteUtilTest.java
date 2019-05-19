@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package de.bmarwell.zchunk.fileformat.util;
+package io.github.zchunk.fileformat.util;
 
 import java.math.BigInteger;
 import java.util.concurrent.atomic.AtomicReference;

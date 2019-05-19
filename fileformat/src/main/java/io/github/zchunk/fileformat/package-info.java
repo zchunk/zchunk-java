@@ -14,18 +14,7 @@
  * limitations under the License.
  */
 
-package io.github.zchunk.compression.api;
+@Value.Style(stagedBuilder = true, jdkOnly = true)
+package io.github.zchunk.fileformat;
 
-import io.github.zchunk.compression.algo.unknown.UnknownAlgorithm;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-
-public class CompressionAlgorithmFactoryTest {
-
-  @Test
-  public void testGetUnknown() {
-    final CompressionAlgorithm algorithm = CompressionAlgorithmFactory.forType(-1L);
-
-    Assertions.assertEquals(algorithm.getClass(), UnknownAlgorithm.class);
-  }
-}
+import org.immutables.value.Value;

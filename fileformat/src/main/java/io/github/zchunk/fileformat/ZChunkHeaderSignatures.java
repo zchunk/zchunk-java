@@ -14,18 +14,14 @@
  * limitations under the License.
  */
 
-package io.github.zchunk.compression.api;
+package io.github.zchunk.fileformat;
 
-import io.github.zchunk.compression.algo.unknown.UnknownAlgorithm;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
+import io.github.zchunk.compressedint.CompressedInt;
+import org.immutables.value.Value;
 
-public class CompressionAlgorithmFactoryTest {
+@Value.Immutable
+public abstract class ZChunkHeaderSignatures {
 
-  @Test
-  public void testGetUnknown() {
-    final CompressionAlgorithm algorithm = CompressionAlgorithmFactory.forType(-1L);
+  public abstract CompressedInt getSignatureCount();
 
-    Assertions.assertEquals(algorithm.getClass(), UnknownAlgorithm.class);
-  }
 }

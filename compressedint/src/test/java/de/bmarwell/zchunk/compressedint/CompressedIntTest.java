@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package de.bmarwell.zchunk.compressedint;
+package io.github.zchunk.compressedint;
 
 import java.math.BigInteger;
 import java.util.Arrays;

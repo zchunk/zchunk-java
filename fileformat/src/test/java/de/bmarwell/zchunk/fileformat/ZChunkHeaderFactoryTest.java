@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package de.bmarwell.zchunk.fileformat;
+package io.github.zchunk.fileformat;
 
-import de.bmarwell.zchunk.compressedint.CompressedInt;
+import io.github.zchunk.compressedint.CompressedInt;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.Set;

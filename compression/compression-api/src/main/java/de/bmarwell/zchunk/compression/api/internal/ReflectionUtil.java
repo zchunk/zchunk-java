@@ -17,7 +17,6 @@
 package de.bmarwell.zchunk.compression.api.internal;
 
 import static java.util.Collections.emptyList;
-import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 
 import java.io.File;
@@ -33,7 +32,6 @@ import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.checkerframework.checker.nullness.qual.Nullable;
 
 public final class ReflectionUtil {
 
@@ -43,27 +41,7 @@ public final class ReflectionUtil {
     // util
   }
 
-  /**
-   * Will try to load classes implementing clazz, from any package below rootpackage.
-   *
-   * @param rootPackage
-   *     the root package to search in.
-   * @param clazz
-   *     the class which should be implemented by the found classes.
-   * @param <T>
-   *     the class type.
-   * @return a list of classes implementing T / clazz.
-   */
-  public static <T> List<Class<T>> loadImplementations(final String rootPackage, final Class<T> clazz) {
-    final List<Class<T>> classes = getClasses(rootPackage, clazz);
-
-    return classes.stream()
-        .filter(classImplementsCompressionAlgorithm(clazz))
-        .collect(toList());
-  }
-
-
-  private static <T> List<Class<T>> getClasses(final String rootPackage, final Class<T> targetClazz) {
+  public static <T> List<Class<T>> getClasses(final String rootPackage, final Class<T> targetClazz) {
     try {
       final ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
       final String path = rootPackage.replace('.', '/');
@@ -83,7 +61,6 @@ public final class ReflectionUtil {
       return emptyList();
     }
   }
-
 
   /**
    * Recursive method used to find all classes in a given directory and subdirs.
@@ -118,27 +95,27 @@ public final class ReflectionUtil {
     }
 
     if (file.getName().endsWith(".class")) {
-      final @Nullable Class<T> aClass = loadClass(packageName, clazzType, file);
-      if (aClass != null) {
-        return singletonList(aClass);
-      }
+      return loadClass(packageName, clazzType, file)
+          .map(Collections::singletonList)
+          .orElseGet(Collections::emptyList);
     }
 
     return emptyList();
   }
 
-  @Nullable
-  private static <T> Class<T> loadClass(final String packageName, final Class<T> clazzType, final File file) {
+  private static <T> Optional<Class<T>> loadClass(final String packageName, final Class<T> clazzType, final File file) {
     try {
       final Class<?> aClass = Class.forName(packageName + '.' + file.getName().substring(0, file.getName().length() - 6));
       if (classImplementsCompressionAlgorithm(clazzType).test(aClass)) {
-        return (Class<T>) aClass;
+        @SuppressWarnings("unchecked")
+        final Class<T> castedClass = (Class<T>) aClass;
+        return Optional.ofNullable(castedClass);
       }
     } catch (final ClassNotFoundException e) {
       LOG.log(Level.WARNING, e, () -> String.format("Class file [%s] found, but unable to create instance.", file.getAbsolutePath()));
     }
 
-    return null;
+    return Optional.empty();
   }
 
   private static <T> List<T> getListFromArray(final T[] input) {
@@ -165,7 +142,7 @@ public final class ReflectionUtil {
     }
   }
 
-  private static <T> Predicate<Class<?>> classImplementsCompressionAlgorithm(final Class<T> type) {
+  public static <T> Predicate<Class<?>> classImplementsCompressionAlgorithm(final Class<T> type) {
     return clazz -> getListFromArray(type.getInterfaces()).contains(type);
   }
 

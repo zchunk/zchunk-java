@@ -90,7 +90,7 @@ public final class ZChunkHeaderFactory {
 
       final ZChunkHeaderPreface headerPreface = readHeaderPreface(completeHeader, lead);
 
-      final ZChunkHeaderIndex index = null;
+      final ZChunkHeaderIndex index = readHeaderIndex(completeHeader, lead, headerPreface);
       final ZChunkHeaderSignatures signature = ImmutableZChunkHeaderSignatures.builder()
           .signatureCount(CompressedIntFactory.valueOf(0L))
           .build();

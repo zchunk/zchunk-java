@@ -32,6 +32,9 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
+import org.checkerframework.checker.nullness.qual.EnsuresNonNull;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 public final class ZChunkIndexParser {
 
@@ -46,8 +49,8 @@ public final class ZChunkIndexParser {
   private long dictLengthOffset = -1L;
   private long dictUncompressedLengthOffset = -1L;
   private long chunkStreamOffset = -1L;
-  private CompressedInt chunkCount;
-  private IndexChecksumType chunkChecksumType;
+  private @Nullable CompressedInt chunkCount;
+  private @Nullable IndexChecksumType chunkChecksumType;
 
   private ZChunkIndexParser(final byte[] completeHeader, final ZChunkHeaderLead lead, final ZChunkHeaderPreface preface) {
     this.completeHeader = completeHeader;
@@ -72,6 +75,7 @@ public final class ZChunkIndexParser {
     }
   }
 
+  @EnsuresNonNull("chunkChecksumType")
   public CompressedInt readIndexCksumType() {
     if (this.cksumTypeOffset == -1L) {
       readIndexSize();
@@ -89,6 +93,7 @@ public final class ZChunkIndexParser {
     }
   }
 
+  @EnsuresNonNull("chunkCount")
   public CompressedInt readChunkCount() {
     if (this.chunkCountOffset == -1) {
       readIndexCksumType();
@@ -122,15 +127,18 @@ public final class ZChunkIndexParser {
   }
 
   public byte[] readDictChecksum() {
-    if (this.dictChecksumOffest == -1L) {
+    if (this.dictChecksumOffest == -1L || null == this.chunkChecksumType) {
       readDictStream();
     }
 
     try (final ByteArrayInputStream bis = new ByteArrayInputStream(this.completeHeader)) {
       bis.skip(this.dictChecksumOffest);
 
-      // TODO. Which checksum does the dict use? chunk or header checksum?
-      final int dictChecksumLength = this.chunkChecksumType.actualChecksumLength();
+      // safe to assume, as it is never set back to null.
+      @SuppressWarnings("nullness")
+      @NonNull
+      final IndexChecksumType chunkChecksumType = this.chunkChecksumType;
+      final int dictChecksumLength = chunkChecksumType.actualChecksumLength();
       final byte[] dictChecksum = new byte[dictChecksumLength];
       bis.read(dictChecksum);
 
@@ -177,11 +185,20 @@ public final class ZChunkIndexParser {
   }
 
   public List<? extends ZChunkHeaderChunkInfo> readChunkInfos() {
-    if (this.chunkStreamOffset == -1L) {
+    if (this.chunkStreamOffset == -1L || null == this.chunkChecksumType || null == this.chunkCount) {
       readUncompressedDictLength();
     }
 
-    if (this.chunkCount.getValue().equals(BigInteger.ZERO)) {
+    // safe to assume, as it is never set back to null.
+    @SuppressWarnings("nullness")
+    @NonNull
+    final IndexChecksumType chunkChecksumType = this.chunkChecksumType;
+    // safe to assume, as it is never set back to null.
+    @SuppressWarnings("nullness")
+    @NonNull
+    final CompressedInt chunkCount = this.chunkCount;
+
+    if (chunkCount.getValue().equals(BigInteger.ZERO)) {
       return emptyList();
     }
 
@@ -189,7 +206,7 @@ public final class ZChunkIndexParser {
 
     long currentOffset = 0;
     // first chunk is the dict chunk.
-    for (long chunkNumber = 0; chunkNumber < this.chunkCount.getLongValue() - 1L; chunkNumber++) {
+    for (long chunkNumber = 0; chunkNumber < chunkCount.getLongValue() - 1L; chunkNumber++) {
       try (final ByteArrayInputStream bis = new ByteArrayInputStream(this.completeHeader)) {
         bis.skip(this.chunkStreamOffset + currentOffset);
         if (this.preface.getPrefaceFlags().contains(PrefaceFlag.HAS_DATA_STREAMS)) {
@@ -197,7 +214,7 @@ public final class ZChunkIndexParser {
           throw new UnsupportedOperationException("data streams not implemented.");
         }
 
-        final byte[] chunkChecksum = new byte[this.chunkChecksumType.actualChecksumLength()];
+        final byte[] chunkChecksum = new byte[chunkChecksumType.actualChecksumLength()];
         bis.read(chunkChecksum);
 
         final CompressedInt compressedChunkLength = CompressedIntFactory.readCompressedInt(bis);
@@ -210,7 +227,7 @@ public final class ZChunkIndexParser {
             .chunkUncompressedLength(uncompressedChunkLength)
             .build());
 
-        currentOffset += this.chunkChecksumType.actualChecksumLength()
+        currentOffset += chunkChecksumType.actualChecksumLength()
             + compressedChunkLength.getCompressedBytes().length
             + uncompressedChunkLength.getCompressedBytes().length;
       } catch (final IOException ioEx) {

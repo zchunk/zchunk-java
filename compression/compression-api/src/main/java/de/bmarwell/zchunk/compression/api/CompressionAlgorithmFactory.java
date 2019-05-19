@@ -16,6 +16,7 @@
 
 package de.bmarwell.zchunk.compression.api;
 
+import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 
 import de.bmarwell.zchunk.compression.algo.unknown.UnknownAlgorithm;
@@ -23,14 +24,18 @@ import de.bmarwell.zchunk.compression.api.internal.ReflectionUtil;
 import java.util.AbstractMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Stream;
+import org.checkerframework.checker.initialization.qual.UnderInitialization;
+import org.checkerframework.checker.nullness.qual.EnsuresNonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 public final class CompressionAlgorithmFactory {
 
-  private static final Package THIS_PACKAGE = CompressionAlgorithmFactory.class.getPackage();
-  private static final String ROOT_PACKAGE = THIS_PACKAGE.getName().replaceAll("\\.api$", ".algo");
+  // do not change this as this would break plugins.
+  private static final String ROOT_PACKAGE = "io.github.zchunk.compression";
 
   private CompressionAlgorithmFactory() {
     // util class.
@@ -70,17 +75,18 @@ public final class CompressionAlgorithmFactory {
 
   private static class ResourceHolder {
 
-    private static ResourceHolder INSTANCE = null;
+    private static @Nullable ResourceHolder INSTANCE = null;
 
     private final List<Class<CompressionAlgorithm>> implementations;
 
     private final Map<Long, Class<CompressionAlgorithm>> typeMapping;
 
     public ResourceHolder(final String rootPackage) {
-      this.implementations = ReflectionUtil.loadImplementations(rootPackage, CompressionAlgorithm.class);
+      this.implementations = loadImplementations(rootPackage, CompressionAlgorithm.class);
       this.typeMapping = loadTypeMapping(this.implementations);
     }
 
+    @EnsuresNonNull({"INSTANCE"})
     public static ResourceHolder newInstance(final String rootPackage) {
       if (INSTANCE == null) {
         INSTANCE = new ResourceHolder(rootPackage);
@@ -89,9 +95,32 @@ public final class CompressionAlgorithmFactory {
       return INSTANCE;
     }
 
-    private Map<Long, Class<CompressionAlgorithm>> loadTypeMapping(final List<Class<CompressionAlgorithm>> implementations) {
-      return implementations.stream()
-          .map(CompressionAlgorithmFactory::mapEntryOrNull)
+    /**
+     * Will try to load classes implementing clazz, from any package below rootpackage.
+     *
+     * @param rootPackage
+     *     the root package to search in.
+     * @param clazz
+     *     the class which should be implemented by the found classes.
+     * @param <T>
+     *     the class type.
+     * @return a list of classes implementing T / clazz.
+     */
+    public <T> List<Class<T>> loadImplementations(@UnderInitialization ResourceHolder this,
+        final String rootPackage,
+        final Class<T> clazz) {
+      final List<Class<T>> classes = ReflectionUtil.getClasses(rootPackage, clazz);
+
+      return classes.stream()
+          .filter(ReflectionUtil.classImplementsCompressionAlgorithm(clazz))
+          .collect(toList());
+    }
+
+    private Map<Long, Class<CompressionAlgorithm>> loadTypeMapping(@UnderInitialization ResourceHolder this,
+        final List<Class<CompressionAlgorithm>> implementations) {
+      final Stream<@Nullable Entry<Long, Class<CompressionAlgorithm>>> entryStream = implementations.stream()
+          .map(CompressionAlgorithmFactory::mapEntryOrNull);
+      return entryStream
           .filter(Objects::nonNull)
           .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
     }

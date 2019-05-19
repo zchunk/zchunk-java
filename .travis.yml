@@ -9,7 +9,10 @@ env:
   - TRAVIS_JDK=adopt-openj9@1.11.28-0
 
 before_install: curl -Ls https://git.io/jabba | bash && . ~/.jabba/jabba.sh
-install: jabba install "$TRAVIS_JDK" && jabba use $_ && java -Xmx32m -version
+
+install:
+  - jabba install "$TRAVIS_JDK" && jabba use $_ && java -Xmx32m -version
+  - mvn dependency:resolve
 
 stages:
   - validations
@@ -19,8 +22,9 @@ stages:
 jobs:
   include:
     - stage: validations
-      script: mvn -B clean install -DskipTests=true
       name: "Code validations (format, binary compatibilty, whitesource, etc.)"
+      script: mvn -B clean install -DskipTests=true -Pcheckstyle
+    - script: mvn -B clean install -DskipTests=true -Pchecker
 
 cache:
   directories:

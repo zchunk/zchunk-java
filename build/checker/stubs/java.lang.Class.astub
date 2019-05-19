@@ -1,0 +1,8 @@
+package java.lang;
+
+import org.checkerframework.checker.nullness.qual.*;
+
+public class Class<T> {
+  // it *can* return null, but we only use it for loggers.
+  public @NonNull String getCanonicalName();
+}

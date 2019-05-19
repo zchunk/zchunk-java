@@ -21,12 +21,15 @@ import static java.security.Security.getProviders;
 import de.bmarwell.zchunk.compressedint.CompressedIntUtil;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.security.Provider;
+import java.security.Provider.Service;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 public final class ZChunkConstants {
 
@@ -50,13 +53,13 @@ public final class ZChunkConstants {
       final String digestClassName = MessageDigest.class.getSimpleName();
       final String aliasPrefix = "Alg.Alias." + digestClassName + ".";
 
-      return Arrays.stream(getProviders())
+      final Stream<@Nullable MessageDigest> messageDigestStream = Arrays.stream(getProviders())
           .flatMap(prov -> {
             final Set<String> algorithms = new HashSet<>(0);
 
             prov.getServices().stream()
                 .filter(s -> digestClassName.equalsIgnoreCase(s.getType()))
-                .map(Provider.Service::getAlgorithm)
+                .map(Service::getAlgorithm)
                 .collect(Collectors.toCollection(() -> algorithms));
 
             prov.keySet().stream()
@@ -67,16 +70,25 @@ public final class ZChunkConstants {
 
             return algorithms.stream();
           })
-          .map(algo -> {
-            try {
-              return MessageDigest.getInstance(algo);
-            } catch (NoSuchAlgorithmException e) {
-              return null;
-            }
-          })
-          .filter(Objects::nonNull)
+          .map(ZChunkConstants::instanceOrNull);
+
+      return toNonNullStream(messageDigestStream)
           .mapToInt(MessageDigest::getDigestLength)
           .max().orElse(512 / 8);
+    }
+
+  }
+
+  @SuppressWarnings("nullness")
+  private static Stream<@NonNull MessageDigest> toNonNullStream(final Stream<@Nullable MessageDigest> messageDigestStream) {
+    return messageDigestStream.filter(Objects::nonNull);
+  }
+
+  private static @Nullable MessageDigest instanceOrNull(final String algo) {
+    try {
+      return MessageDigest.getInstance(algo);
+    } catch (final NoSuchAlgorithmException e) {
+      return null;
     }
   }
 }

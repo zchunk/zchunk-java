@@ -27,11 +27,14 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import org.checkerframework.checker.nullness.qual.EnsuresNonNull;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 public class ZChunkLeadParser {
 
   private final byte[] leadBytes = new byte[MAX_LEAD_SIZE];
-  private HeaderChecksumType checksumType;
+  private @Nullable HeaderChecksumType checksumType;
   private long headerSizeOffset;
   private long headerChecksumOffset;
 
@@ -42,8 +45,11 @@ public class ZChunkLeadParser {
    *     the bytes belonging to the lead.
    */
   private ZChunkLeadParser(final byte[] leadBytes) {
-    if (leadBytes.length < MAX_LEAD_SIZE) {
-      throw new IllegalArgumentException("");
+    final int length = leadBytes.length;
+
+    if (length < MAX_LEAD_SIZE) {
+      final String message = String.format("lead bytes are too short with [%d] bytes. Need at least [%d] bytes.", length, MAX_LEAD_SIZE);
+      throw new IllegalArgumentException(message);
     }
 
     System.arraycopy(leadBytes, 0, this.leadBytes, 0, MAX_LEAD_SIZE);
@@ -96,6 +102,7 @@ public class ZChunkLeadParser {
     }
   }
 
+  @EnsuresNonNull("checksumType")
   public CompressedInt readLeadCksumType() {
     try (final ByteArrayInputStream bis = new ByteArrayInputStream(this.leadBytes)) {
       final long skip = bis.skip(FILE_MAGIC.length);
@@ -114,7 +121,7 @@ public class ZChunkLeadParser {
   }
 
   public CompressedInt readHeaderSize() {
-    if (this.headerSizeOffset == -1L) {
+    if (this.headerSizeOffset == -1L || null == this.checksumType) {
       readLeadCksumType();
     }
 
@@ -130,11 +137,15 @@ public class ZChunkLeadParser {
   }
 
   public byte[] readHeaderChecksum() {
-    if (this.headerChecksumOffset == -1L) {
+    if (this.headerChecksumOffset == -1L || null == this.checksumType) {
       readHeaderSize();
     }
 
-    final int cksumLength = this.checksumType.getDigestLength();
+    // as checksumType is never set back to null, this is safe to assume.
+    @SuppressWarnings("nullness")
+    @NonNull
+    final HeaderChecksumType checksumType = this.checksumType;
+    final int cksumLength = checksumType.getDigestLength();
 
     try (final ByteArrayInputStream bis = new ByteArrayInputStream(this.leadBytes)) {
       bis.skip(this.headerChecksumOffset);

@@ -20,8 +20,8 @@ before_install: test -z "$TRAVIS_JDK" || curl -Ls https://git.io/jabba | bash &&
 
 install:
   # Only install and use JDK if it is set. If empty, use system JDK.
-  - test -z "$TRAVIS_JDK" || jabba install "$TRAVIS_JDK");
-  - test -z "$TRAVIS_JDK" || jabba use "$TRAVIS_JDK");
+  - test -z "$TRAVIS_JDK" || jabba install "$TRAVIS_JDK";
+  - test -z "$TRAVIS_JDK" || jabba use "$TRAVIS_JDK";
   # Print the JDK we are going to use.
   - java -Xmx32m -version
   # due to a bug, dependency resolve will try to resolve reactor projects from subfolders, although
@@ -48,4 +48,5 @@ cache:
     - "$HOME/.m2/repository"
     - "$HOME/.jabba/jdk"
 
-
+after_success:
+  - bash <(curl -s https://codecov.io/bash)

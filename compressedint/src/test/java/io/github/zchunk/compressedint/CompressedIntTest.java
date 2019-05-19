@@ -59,7 +59,6 @@ public class CompressedIntTest {
     final CompressedInt bytes = CompressedIntFactory.valueOf(unsignedLongValue);
 
     final String binaryString = byteArrayToBinaryString(bytes.getCompressedBytes());
-    System.out.println("" + new BigInteger(1, bytes.getCompressedBytes()).toString(16));
 
     Assertions.assertEquals("1111111011111110111111101111111011111110111111101111111011111110111111110000001", binaryString);
   }

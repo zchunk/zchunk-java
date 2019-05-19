@@ -5,18 +5,22 @@ dist: xenial
 env:
   - TRAVIS_JDK=adopt@1.8.202-08
   - TRAVIS_JDK=adopt-openj9@1.8.212-03
-  - TRAVIS_JDK=ibm@1.8.0-5.35
+  # IBM doesn't allow downloads, but openjdk-openj9 will also work.
+  #- TRAVIS_JDK=ibm@1.8.0-5.35
   - TRAVIS_JDK=amazon-corretto@1.8.212-04.2
   # Java 11 JVMs
   - TRAVIS_JDK=adopt@1.11.28-0
   - TRAVIS_JDK=adopt-openj9@1.11.28-0
-  - TRAVIS_JDK=1.11.0-3
+  # Oracle doesn't allow downloads, this will give "invalid header" error.
+  #- TRAVIS_JDK=1.11.0-3
   - TRAVIS_JDK=openjdk@1.11.0-2
   - TRAVIS_JDK=amazon-corretto@1.11.0-3.7.1
   # Default JDK of xenial
   - TRAVIS_JDK=
 
-before_install: test -z "$TRAVIS_JDK" || curl -Ls https://git.io/jabba | bash && . ~/.jabba/jabba.sh
+before_install:
+  - test -z "$TRAVIS_JDK" || curl -Ls https://git.io/jabba | bash
+  - test -z "$TRAVIS_JDK" || . ~/.jabba/jabba.sh
 
 install:
   # Only install and use JDK if it is set. If empty, use system JDK.

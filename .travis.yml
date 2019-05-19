@@ -42,14 +42,14 @@ jobs:
   include:
     - stage: validations
       name: "Code validations (checkstyle)"
-      script: ./mvnw -B clean install -DskipTests=true -Pcheckstyle
+      script: ./mvnw -V -B clean install -DskipTests=true -Pcheckstyle
     - stage: validations
       name: "Checker framework (Nullness checker)."
-      script: ./mvnw -B clean install -DskipTests=true -Pchecker
+      script: ./mvnw -V -B clean install -DskipTests=true -Pchecker
 
     - stage: test
       name: "Test build with coverage report"
-      script: ./mvnw -B clean install -DskipTests=true -Pchecker
+      script: ./mvnw -V -B clean install -Dmaven.javadoc.skip=true
       after_success: bash <(curl -s https://codecov.io/bash)
 
 cache:

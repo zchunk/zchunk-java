@@ -25,9 +25,11 @@ stages:
 jobs:
   include:
     - stage: validations
-      name: "Code validations (format, binary compatibilty, whitesource, etc.)"
+      name: "Code validations (checkstyle)"
       script: ./mvnw -B clean install -DskipTests=true -Pcheckstyle
-    - script: ./mvnw -B clean install -DskipTests=true -Pchecker
+    - stage: validations
+      name: "Checker framework (Nullness checker)."
+      script: ./mvnw -B clean install -DskipTests=true -Pchecker
 
 cache:
   directories:

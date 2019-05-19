@@ -288,9 +288,7 @@
                   interpreted from each module directory -->
                 <arg>-Astubs=${checker.stubs.dir}</arg>
                 <arg>
-                  -AskipDefs=^de\.bmarwell\.zchunk\..*\.ReflectionUtil$|io\.github\.zchunk\..*\.ReflectionUtil$
-                  |^de\.bmarwell\.zchunk\..*\.ChecksumUtil$|^io\.github\.zchunk\..*\.ChecksumUtil$
-                  |^.*Test$
+                  -AskipDefs=^io\.github\.zchunk\..*\.ReflectionUtil$|^io\.github\.zchunk\..*\.ChecksumUtil$|^.*Test$
                 </arg>
               </compilerArgs>
             </configuration>

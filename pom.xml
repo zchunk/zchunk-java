@@ -122,6 +122,12 @@
           <version>3.0.0-M2</version>
         </plugin>
 
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-dependency-plugin</artifactId>
+          <version>3.1.1</version>
+        </plugin>
+
         <!-- maven checkstyle -->
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
@@ -175,7 +181,6 @@
         </configuration>
       </plugin>
     </plugins>
-
   </build>
 
   <profiles>

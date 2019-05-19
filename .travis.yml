@@ -12,7 +12,10 @@ before_install: curl -Ls https://git.io/jabba | bash && . ~/.jabba/jabba.sh
 
 install:
   - jabba install "$TRAVIS_JDK" && jabba use $_ && java -Xmx32m -version
-  - mvn dependency:resolve -DexcludeGroupIds=io.github.zchunk
+  # due to a bug, dependency resolve will try to resolve reactor projects from subfolders, although
+  # excludeReactor=true is set.
+  #  - ./mvnw dependency:resolve dependency:resolve-plugins
+  - ./mvnw install -DskipTests=true -Dmaven.javadoc.skip=true -B -V
 
 stages:
   - validations
@@ -23,8 +26,8 @@ jobs:
   include:
     - stage: validations
       name: "Code validations (format, binary compatibilty, whitesource, etc.)"
-      script: mvn -B clean install -DskipTests=true -Pcheckstyle
-    - script: mvn -B clean install -DskipTests=true -Pchecker
+      script: ./mvnw -B clean install -DskipTests=true -Pcheckstyle
+    - script: ./mvnw -B clean install -DskipTests=true -Pchecker
 
 cache:
   directories:

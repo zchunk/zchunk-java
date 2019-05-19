@@ -1,27 +1,39 @@
 # zchunk-java
 
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0) [![Build Status](https://travis-ci.org/bmhm/zchunk-java.svg?branch=master)](https://travis-ci.org/bmhm/zchunk-java)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0
+)   [![Build Status](https://travis-ci.org/bmhm/zchunk-java.svg?branch=master)](https://travis-ci.org/bmhm/zchunk-java
+)   [![codecov](https://codecov.io/gh/bmhm/zchunk-java/branch/master/graph/badge.svg)](https://codecov.io/gh/bmhm/zchunk-java
+)
 
-zchunk is a compressed file format that splits the file into independent chunks.
+
+This is a **pure java-only implementation** of the [ZChunk](https://github.com/zchunk/zchunk) file format.
+It does not hard depend on other libraries and can be used without any external or transitive dependencies.
+
+## What is zchunk?
+
+**zchunk** is a compressed file format that splits the file into independent chunks.
 This allows you to only download changed chunks when downloading a new version
 of the file, and also makes zchunk files efficient over rsync.
 
 zchunk files are protected with strong checksums to verify that the file you
 downloaded is, in fact, the file you wanted.
 
-**As of zchunk-1.0, the ABI and API have been marked stable, and the only changes
-allowed are backwards-compatible additions**
+## What is the goal of this project?
 
-## Requirements
 
-  * Java 8 or newer
-  * Maven 
 
-## Installation
+## What dependencies do I need?
 
-  * `mvn clean install`
+**zchunk-java** can be used *without any* transitives dependencies/libraries.
+
+However, to have support for compression, you should use the arteifact `zchunk-all` (TBD), which also
+pulls in support for `zstd` compression and maybe other compressions later.
+
+
+## Runtime Requirements and usage
+
+  * Java 8 or newer, any JDK (adopt and adopt-openj9 work well).
   
-## Usage
 
 ### To read a file header:
 
@@ -69,5 +81,17 @@ class Main {
 ### executable jars
 
 => TBD
+  
+## Building from source
+ 
+### Build requirements
+  
+  * Maven 3.3.1 or newer, or just use `mvnw`.
+
+### Installation
+
+  * `./mvnw clean install`
+  
+
 
 

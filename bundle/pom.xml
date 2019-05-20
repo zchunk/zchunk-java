@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <parent>
+    <artifactId>zchunk-parent</artifactId>
+    <groupId>io.github.zchunk</groupId>
+    <version>1.0.0-SNAPSHOT</version>
+  </parent>
+  <modelVersion>4.0.0</modelVersion>
+
+  <artifactId>zchunk-bundle</artifactId>
+  <name>bundle</name>
+  <description>ZChunk library bundle jar</description>
+
+  <dependencies>
+    <dependency>
+      <groupId>io.github.zchunk</groupId>
+      <artifactId>zchunk-fileformat</artifactId>
+      <version>1.0.0-SNAPSHOT</version>
+    </dependency>
+
+    <dependency>
+      <groupId>io.github.zchunk</groupId>
+      <artifactId>zchunk-compression-none</artifactId>
+      <version>1.0.0-SNAPSHOT</version>
+    </dependency>
+
+    <dependency>
+      <groupId>io.github.zchunk</groupId>
+      <artifactId>zchunk-compression-zstd</artifactId>
+      <version>1.0.0-SNAPSHOT</version>
+    </dependency>
+
+    <!-- test dependencies -->
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-api</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-engine</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+              <shadedGroupFilter>io.github.zchunk</shadedGroupFilter>
+              <shadedArtifactAttached>false</shadedArtifactAttached>
+              <createSourcesJar>true</createSourcesJar>
+              <promoteTransitiveDependencies>true</promoteTransitiveDependencies>
+              <createDependencyReducedPom>true</createDependencyReducedPom>
+
+              <transformers>
+                <transformer
+                  implementation="org.apache.maven.plugins.shade.resource.ApacheNoticeResourceTransformer">
+                  <projectName>ZChunk Library</projectName>
+                </transformer>
+              </transformers>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
+</project>

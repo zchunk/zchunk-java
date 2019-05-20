@@ -52,12 +52,16 @@ public final class OffsetUtil {
      * optional element count only exists if the flag is set.
      */
     final long optElementCountBytes = getOptElementCountBytes(preface);
+    final BigInteger totalDataCksumLength = BigInteger.valueOf(preface.getTotalDataChecksum().length);
+    final BigInteger prefaceFlagsLength = BigInteger.valueOf(preface.getPrefaceFlagsInt().getCompressedBytes().length);
+    final BigInteger compressionTypeLength = BigInteger
+        .valueOf(preface.getCompressionAlgorithm().getCompressionTypeValue().getCompressedBytes().length);
 
-    return BigInteger.valueOf(preface.getTotalDataChecksum().length)
+    return totalDataCksumLength
         // plus highest preface flag
-        .add(BigInteger.valueOf(preface.getPrefaceFlagsInt().getCompressedBytes().length))
+        .add(prefaceFlagsLength)
         // plus length of compression type
-        .add(BigInteger.valueOf(preface.getCompressionAlgorithm().getCompressionTypeValue().getCompressedBytes().length))
+        .add(compressionTypeLength)
         // this might even be 0 if the flag was not set.
         .add(BigInteger.valueOf(optElementCountBytes))
         .add(BigInteger.valueOf(

@@ -16,9 +16,12 @@
 
 package io.github.zchunk.fileformat;
 
+import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 import java.util.StringJoiner;
+import java.util.logging.Logger;
 
 /**
  * Checksum type for everything in the index.
@@ -32,17 +35,20 @@ import java.util.StringJoiner;
  * </p>
  */
 public enum IndexChecksumType {
-  SHA1("SHA-1", -1),
-  SHA256("SHA-256", -1),
-  SHA512("SHA-512", -1),
-  SHA512_128("SHA-512", 16);
+  UNKNOWN("none", -1L, 0),
+  SHA1("SHA-1", 0L, -1),
+  SHA256("SHA-256", 1L, -1),
+  SHA512("SHA-512", 2L, -1),
+  SHA512_128("SHA-512", 3L, 16);
 
   private final String digestAlgorithm;
   private final int length;
+  private final long identifier;
 
-  IndexChecksumType(final String digestAlgorithm, final int length) {
+  IndexChecksumType(final String digestAlgorithm, final long identifier, final int length) {
     try {
       this.digestAlgorithm = digestAlgorithm;
+      this.identifier = identifier;
       if (length != -1) {
         this.length = length;
       } else {
@@ -51,6 +57,21 @@ public enum IndexChecksumType {
     } catch (final NoSuchAlgorithmException algoEx) {
       throw new IllegalArgumentException("Unable to create hashing algorithm: [" + digestAlgorithm + "]. Check your JVM settings.", algoEx);
     }
+  }
+
+  public static IndexChecksumType find(final BigInteger unsignedLongValue) {
+    if (unsignedLongValue.compareTo(BigInteger.valueOf(Long.MAX_VALUE)) >= 1) {
+      final String message = String.format("Unknown Checksum type: [%s], exceeds [%d]!", unsignedLongValue.toString(), Integer.MAX_VALUE);
+      Logger.getLogger(IndexChecksumType.class.getCanonicalName()).warning(message);
+      return UNKNOWN;
+    }
+
+    final long requestedId = unsignedLongValue.longValue();
+
+    return Arrays.stream(values())
+        .filter(algo -> algo.identifier == requestedId)
+        .findFirst()
+        .orElse(UNKNOWN);
   }
 
   public int actualChecksumLength() {
@@ -77,11 +98,16 @@ public enum IndexChecksumType {
     }
   }
 
+  public long getIdentifier() {
+    return this.identifier;
+  }
+
   @Override
   public String toString() {
     return new StringJoiner(", ", IndexChecksumType.class.getSimpleName() + "[", "]")
         .add("digestAlgorithm=" + this.digestAlgorithm)
         .add("actualChecksumLength=" + this.length)
+        .add("identifier=" + this.identifier)
         .add("ordinal=" + this.ordinal())
         .toString();
   }

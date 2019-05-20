@@ -56,7 +56,9 @@ public final class ZChunkIndexParser {
     this.completeHeader = completeHeader;
     this.lead = lead;
     this.preface = preface;
-    this.indexStart = OffsetUtil.getLeadLength(lead) + OffsetUtil.getPrefaceLength(preface);
+    final int leadLength = OffsetUtil.getLeadLength(lead);
+    final long prefaceLength = OffsetUtil.getPrefaceLength(preface);
+    this.indexStart = leadLength + prefaceLength;
   }
 
   public static ZChunkIndexParser fromBytes(final byte[] completeHeader, final ZChunkHeaderLead lead, final ZChunkHeaderPreface preface) {
@@ -85,7 +87,11 @@ public final class ZChunkIndexParser {
       bis.skip(this.cksumTypeOffset);
       final CompressedInt compressedInt = CompressedIntFactory.readCompressedInt(bis);
       this.chunkCountOffset = this.cksumTypeOffset + compressedInt.getCompressedBytes().length;
-      this.chunkChecksumType = IndexChecksumType.values()[compressedInt.getIntValue()];
+      this.chunkChecksumType = IndexChecksumType.find(compressedInt.getValue());
+
+      if (this.chunkChecksumType.equals(IndexChecksumType.UNKNOWN)) {
+        throw new IllegalArgumentException("Cannot find index type.");
+      }
 
       return compressedInt;
     } catch (final IOException ioEx) {

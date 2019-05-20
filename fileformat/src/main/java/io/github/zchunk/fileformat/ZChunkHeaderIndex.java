@@ -63,7 +63,7 @@ public abstract class ZChunkHeaderIndex {
 
   @Value.Derived
   public IndexChecksumType getChunkChecksumType() {
-    return IndexChecksumType.values()[getChunkChecksumTypeInt().getIntValue()];
+    return IndexChecksumType.find(getChunkChecksumTypeInt().getValue());
   }
 
   public abstract CompressedInt getChunkCount();

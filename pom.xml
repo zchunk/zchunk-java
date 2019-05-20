@@ -35,6 +35,8 @@
     <module>compression/compression-zstd</module>
 
     <module>fileformat</module>
+
+    <module>bundle</module>
   </modules>
 
   <properties>
@@ -165,6 +167,12 @@
               <version>8.20</version>
             </dependency>
           </dependencies>
+        </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-shade-plugin</artifactId>
+          <version>3.2.1</version>
         </plugin>
       </plugins>
     </pluginManagement>

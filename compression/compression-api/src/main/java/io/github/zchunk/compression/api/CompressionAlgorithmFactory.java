@@ -17,19 +17,21 @@
 package io.github.zchunk.compression.api;
 
 import static java.util.Collections.unmodifiableMap;
-import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 
 import io.github.zchunk.compressedint.CompressedInt;
 import io.github.zchunk.compression.algo.unknown.UnknownAlgorithm;
-import io.github.zchunk.compression.api.internal.ReflectionUtil;
 import java.util.AbstractMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.ServiceLoader;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 import org.checkerframework.checker.initialization.qual.UnderInitialization;
 import org.checkerframework.checker.nullness.qual.EnsuresNonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -43,14 +45,8 @@ public final class CompressionAlgorithmFactory {
     // util class.
   }
 
-  public static Map<Long, Class<CompressionAlgorithm>> getKnownAlgorithms() {
+  public static Map<Long, CompressionAlgorithm> getKnownAlgorithms() {
     return unmodifiableMap(getTypeMappings());
-  }
-
-  private static Map.@Nullable Entry<Long, Class<CompressionAlgorithm>> mapEntryOrNull(final Class<CompressionAlgorithm> clazz) {
-    return ReflectionUtil.newInstance(clazz)
-        .map(compInstance -> new AbstractMap.SimpleEntry<>(compInstance.getCompressionTypeValue().getUnsignedLongValue(), clazz))
-        .orElse(null);
   }
 
   /**
@@ -64,17 +60,16 @@ public final class CompressionAlgorithmFactory {
    */
   public static CompressionAlgorithm forType(final long compressionType) {
     return Optional.ofNullable(getTypeMappings().get(compressionType))
-        .flatMap(ReflectionUtil::newInstance)
         .orElseGet(UnknownAlgorithm::new);
   }
 
   /* Utility methods */
 
-  private static List<Class<CompressionAlgorithm>> getImplementations() {
+  private static List<CompressionAlgorithm> getImplementations() {
     return ResourceHolder.newInstance(ROOT_PACKAGE).getImplementations();
   }
 
-  private static Map<Long, Class<CompressionAlgorithm>> getTypeMappings() {
+  private static Map<Long, CompressionAlgorithm> getTypeMappings() {
     return ResourceHolder.newInstance(ROOT_PACKAGE).getTypeMapping();
   }
 
@@ -87,19 +82,19 @@ public final class CompressionAlgorithmFactory {
 
     private static @Nullable ResourceHolder INSTANCE = null;
 
-    private final List<Class<CompressionAlgorithm>> implementations;
+    private final List<CompressionAlgorithm> implementations;
 
-    private final Map<Long, Class<CompressionAlgorithm>> typeMapping;
+    private final Map<Long, CompressionAlgorithm> typeMapping;
 
-    public ResourceHolder(final String rootPackage) {
-      this.implementations = loadImplementations(rootPackage, CompressionAlgorithm.class);
+    public ResourceHolder() {
+      this.implementations = loadImplementations();
       this.typeMapping = loadTypeMapping(this.implementations);
     }
 
     @EnsuresNonNull({"INSTANCE"})
     public static ResourceHolder newInstance(final String rootPackage) {
       if (INSTANCE == null) {
-        INSTANCE = new ResourceHolder(rootPackage);
+        INSTANCE = new ResourceHolder();
       }
 
       return INSTANCE;
@@ -108,39 +103,39 @@ public final class CompressionAlgorithmFactory {
     /**
      * Will try to load classes implementing clazz, from any package below rootpackage.
      *
-     * @param rootPackage
-     *     the root package to search in.
-     * @param clazz
-     *     the class which should be implemented by the found classes.
-     * @param <T>
-     *     the class type.
      * @return a list of classes implementing T / clazz.
      */
-    public <T> List<Class<T>> loadImplementations(@UnderInitialization ResourceHolder this,
-        final String rootPackage,
-        final Class<T> clazz) {
-      final List<Class<T>> classes = ReflectionUtil.getClasses(rootPackage, clazz);
+    public List<CompressionAlgorithm> loadImplementations(@UnderInitialization ResourceHolder this) {
+      final ServiceLoader<CompressionAlgorithm> load = ServiceLoader.load(CompressionAlgorithm.class);
+      final Logger logger = Logger.getLogger("io.github.zchunk");
 
-      return classes.stream()
-          .filter(ReflectionUtil.classImplementsCompressionAlgorithm(clazz))
-          .collect(toList());
+      logger.info("ServiceLoader: " + load);
+
+      return StreamSupport.stream(load.spliterator(), false)
+          .peek(clazz2 -> logger.info("Class: " + clazz2.getClass()))
+          .collect(Collectors.toList());
     }
 
-    private Map<Long, Class<CompressionAlgorithm>> loadTypeMapping(@UnderInitialization ResourceHolder this,
-        final List<Class<CompressionAlgorithm>> implementations) {
-      final Stream<@Nullable Entry<Long, Class<CompressionAlgorithm>>> entryStream = implementations.stream()
-          .map(CompressionAlgorithmFactory::mapEntryOrNull);
+    private Map<Long, CompressionAlgorithm> loadTypeMapping(@UnderInitialization ResourceHolder this,
+                                                            final List<CompressionAlgorithm> implementations) {
+      final Stream<@Nullable Entry<Long, CompressionAlgorithm>> entryStream = implementations.stream()
+          .map(ResourceHolder::mapEntryOrNull);
       return entryStream
           .filter(Objects::nonNull)
           .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
-    public List<Class<CompressionAlgorithm>> getImplementations() {
+    public List<CompressionAlgorithm> getImplementations() {
       return this.implementations;
     }
 
-    public Map<Long, Class<CompressionAlgorithm>> getTypeMapping() {
+    public Map<Long, CompressionAlgorithm> getTypeMapping() {
       return this.typeMapping;
     }
+
+    private static Map.Entry<Long, CompressionAlgorithm> mapEntryOrNull(final CompressionAlgorithm clazz) {
+      return new AbstractMap.SimpleEntry<>(clazz.getCompressionTypeValue().getUnsignedLongValue(), clazz);
+    }
   }
+
 }

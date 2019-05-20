@@ -21,6 +21,7 @@ import static java.util.stream.Collectors.toConcurrentMap;
 
 import io.github.zchunk.compressedint.CompressedInt;
 import io.github.zchunk.compressedint.CompressedIntFactory;
+import io.github.zchunk.compression.algo.unknown.UnknownAlgorithm;
 import io.github.zchunk.compression.api.CompressionAlgorithm;
 import io.github.zchunk.compression.api.CompressionAlgorithmFactory;
 import io.github.zchunk.fileformat.err.InvalidFileException;
@@ -156,7 +157,11 @@ public final class ZChunkHeaderFactory {
     final CompressedInt prefaceFlagsInt = prefaceParser.readFlagsInt();
     final Set<PrefaceFlag> flags = PrefaceFlag.getPrefaceFlags(prefaceFlagsInt);
 
-    final CompressionAlgorithm compressionAlgorithm = CompressionAlgorithmFactory.forType(prefaceParser.readCompressionType());
+    final CompressedInt compressionTypeInt = prefaceParser.readCompressionType();
+    final CompressionAlgorithm compressionAlgorithm = CompressionAlgorithmFactory.forType(compressionTypeInt);
+    if (compressionAlgorithm.getClass().equals(UnknownAlgorithm.class)) {
+      throw new IllegalArgumentException("Unknown compression type for type " + compressionTypeInt);
+    }
 
     return ImmutableZChunkHeaderPreface.builder()
         .totalDataChecksum(prefaceParser.readTotalDataCksum())

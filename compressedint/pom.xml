@@ -26,7 +26,8 @@
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
-  <artifactId>compressedint</artifactId>
+  <artifactId>zchunk-compressedint</artifactId>
+  <name>compressedint</name>
 
   <dependencies>
     <!-- 3rd party -->

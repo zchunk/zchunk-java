@@ -16,6 +16,7 @@
 
 package io.github.zchunk.compression.api;
 
+import static java.util.Collections.unmodifiableMap;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 
@@ -40,6 +41,10 @@ public final class CompressionAlgorithmFactory {
 
   private CompressionAlgorithmFactory() {
     // util class.
+  }
+
+  public static Map<Long, Class<CompressionAlgorithm>> getKnownAlgorithms() {
+    return unmodifiableMap(getTypeMappings());
   }
 
   private static Map.@Nullable Entry<Long, Class<CompressionAlgorithm>> mapEntryOrNull(final Class<CompressionAlgorithm> clazz) {

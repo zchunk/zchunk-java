@@ -26,19 +26,20 @@
   <modelVersion>4.0.0</modelVersion>
 
   <artifactId>zchunk-fileformat</artifactId>
+  <name>fileformat</name>
 
   <dependencies>
     <!-- reactor modules -->
     <dependency>
       <groupId>io.github.zchunk</groupId>
-      <artifactId>compressedint</artifactId>
+      <artifactId>zchunk-compressedint</artifactId>
       <version>1.0.0-SNAPSHOT</version>
     </dependency>
 
     <!-- reactor modules -->
     <dependency>
       <groupId>io.github.zchunk</groupId>
-      <artifactId>compression-api</artifactId>
+      <artifactId>zchunk-compression-api</artifactId>
       <version>1.0.0-SNAPSHOT</version>
     </dependency>
 

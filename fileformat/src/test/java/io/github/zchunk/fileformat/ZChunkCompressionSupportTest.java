@@ -6,10 +6,20 @@ import io.github.zchunk.compression.algo.zstd.ZStdCompressionAlgorithm;
 import io.github.zchunk.compression.api.CompressionAlgorithm;
 import io.github.zchunk.compression.api.CompressionAlgorithmFactory;
 import io.github.zchunk.compression.api.err.DecompressionException;
+import java.util.Map;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
+@Disabled(value = "does not work with test-only dependencies. "
+    + "Move into separate test module or create zchunk-all / zchunk-lib.")
 public class ZChunkCompressionSupportTest {
+
+  @Test
+  public void testCompressionImplementations() {
+    final Map<Long, Class<CompressionAlgorithm>> algorithms = CompressionAlgorithmFactory.getKnownAlgorithms();
+    Assertions.assertTrue(algorithms.size() >= 3);
+  }
 
   @Test
   public void testCompressionSupport_unknown() {

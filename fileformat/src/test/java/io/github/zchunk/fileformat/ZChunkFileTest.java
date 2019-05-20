@@ -20,6 +20,9 @@ import io.github.zchunk.fileformat.util.ByteUtils;
 import io.github.zchunk.fileformat.util.ChecksumUtil;
 import io.github.zchunk.fileformat.util.OffsetUtil;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.logging.Logger;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -49,7 +52,8 @@ public class ZChunkFileTest {
         () -> testLead(header.getLead()),
         () -> testPreface(header.getPreface()),
         () -> testIndex(header.getIndex()),
-        () -> checkChecksum(header)
+        () -> checkChecksum(header),
+        () -> testDecompressDictOnFirstChunk(header, TEST_FILE)
     );
   }
 
@@ -105,4 +109,19 @@ public class ZChunkFileTest {
     );
   }
 
+  private void testDecompressDictOnFirstChunk(final ZChunkHeader header, final File testFile) {
+    final byte[] dict = ZChunk.getDecompressedDict(header, testFile);
+    final ZChunkHeaderChunkInfo chunkInfo = ZChunk.getChunkInfo(header, 0L);
+    final byte[] chunkBuffer = new byte[chunkInfo.getChunkUncompressedLength().getIntValue()];
+
+    try (final InputStream is = ZChunk.getDecompressedChunk(header, testFile, dict, 0L)) {
+      // only read the first few bytes to see if it works.
+      is.read(chunkBuffer, 0, 120);
+    } catch (final IOException ioEx) {
+      throw new RuntimeException(ioEx);
+    }
+
+    final String readBytes = new String(chunkBuffer, StandardCharsets.UTF_8);
+    Assertions.assertTrue(readBytes.startsWith("<?xml version=\"1.0\" encoding=\"UTF-8\"?>"));
+  }
 }

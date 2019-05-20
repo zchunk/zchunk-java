@@ -23,7 +23,6 @@ import io.github.zchunk.compressedint.CompressedInt;
 import io.github.zchunk.compressedint.CompressedIntFactory;
 import io.github.zchunk.compression.api.CompressionAlgorithm;
 import io.github.zchunk.compression.api.CompressionAlgorithmFactory;
-import io.github.zchunk.compression.api.ImmutableCompressionAlgorithm;
 import io.github.zchunk.fileformat.err.InvalidFileException;
 import io.github.zchunk.fileformat.parser.ZChunkIndexParser;
 import io.github.zchunk.fileformat.parser.ZChunkLeadParser;
@@ -157,11 +156,7 @@ public final class ZChunkHeaderFactory {
     final CompressedInt prefaceFlagsInt = prefaceParser.readFlagsInt();
     final Set<PrefaceFlag> flags = PrefaceFlag.getPrefaceFlags(prefaceFlagsInt);
 
-    final CompressionAlgorithm compressionAlgorithm = ImmutableCompressionAlgorithm.builder()
-        .compressionTypeValue(prefaceParser.readCompressionType())
-        .name("unknown")
-        .outputStreamSupplier(a -> a)
-        .build();
+    final CompressionAlgorithm compressionAlgorithm = CompressionAlgorithmFactory.forType(prefaceParser.readCompressionType());
 
     return ImmutableZChunkHeaderPreface.builder()
         .totalDataChecksum(prefaceParser.readTotalDataCksum())

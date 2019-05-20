@@ -42,6 +42,19 @@
       <version>1.0.0-SNAPSHOT</version>
     </dependency>
 
+    <!-- this is an optional dependency, only used by tests. -->
+    <dependency>
+      <groupId>io.github.zchunk</groupId>
+      <artifactId>zchunk-compression-none</artifactId>
+      <version>1.0.0-SNAPSHOT</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.github.zchunk</groupId>
+      <artifactId>zchunk-compression-zstd</artifactId>
+      <version>1.0.0-SNAPSHOT</version>
+      <scope>test</scope>
+    </dependency>
 
     <!-- 3rd party -->
     <dependency>

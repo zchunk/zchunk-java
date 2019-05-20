@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <parent>
+    <artifactId>zchunk-parent</artifactId>
+    <groupId>io.github.zchunk</groupId>
+    <version>1.0.0-SNAPSHOT</version>
+    <relativePath>../../pom.xml</relativePath>
+  </parent>
+  <modelVersion>4.0.0</modelVersion>
+
+  <artifactId>zchunk-compression-zstd</artifactId>
+
+  <dependencies>
+    <dependency>
+      <groupId>io.github.zchunk</groupId>
+      <artifactId>compression-api</artifactId>
+      <version>1.0.0-SNAPSHOT</version>
+    </dependency>
+
+    <!-- actual implementation -->
+    <!-- https://mvnrepository.com/artifact/com.github.luben/zstd-jni -->
+    <dependency>
+      <groupId>com.github.luben</groupId>
+      <artifactId>zstd-jni</artifactId>
+      <version>1.4.0-1</version>
+    </dependency>
+
+  </dependencies>
+
+
+</project>

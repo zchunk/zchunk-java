@@ -30,6 +30,8 @@
     <module>compressedint</module>
 
     <module>compression/compression-api</module>
+    <module>compression/compression-none</module>
+    <module>compression/compression-zstd</module>
 
     <module>fileformat</module>
   </modules>

@@ -18,10 +18,8 @@ package io.github.zchunk.compression.api;
 
 import io.github.zchunk.compressedint.CompressedInt;
 import java.io.InputStream;
-import java.util.function.Function;
-import org.immutables.value.Value;
+import java.util.function.BiFunction;
 
-@Value.Immutable
 public interface CompressionAlgorithm {
 
   /**
@@ -41,6 +39,7 @@ public interface CompressionAlgorithm {
   /**
    * A method that will take in a stream and output an uncompressed stream.
    * @return a stream conversion method.
+   * @throws io.github.zchunk.compression.api.err.DecompressionException if an exception occurs.
    */
-  Function<InputStream, InputStream> getOutputStreamSupplier();
+  BiFunction<InputStream, byte[], InputStream> getOutputStreamSupplier();
 }

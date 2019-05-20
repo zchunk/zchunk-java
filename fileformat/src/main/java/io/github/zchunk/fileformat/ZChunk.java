@@ -16,11 +16,21 @@
 
 package io.github.zchunk.fileformat;
 
+import io.github.zchunk.compression.api.CompressionAlgorithm;
 import io.github.zchunk.fileformat.err.InvalidFileException;
+import io.github.zchunk.fileformat.io.BoundedInputStream;
 import io.github.zchunk.fileformat.util.ChecksumUtil;
+import io.github.zchunk.fileformat.util.OffsetUtil;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.function.BiFunction;
+import java.util.logging.Logger;
 
-public class ZChunk {
+public final class ZChunk {
+
+  private static final Logger LOG = Logger.getLogger("io.github.zchunk.fileformat.ZChunk");
 
   /**
    * Reads in a zchunk file.
@@ -52,4 +62,57 @@ public class ZChunk {
         && ChecksumUtil.isValidData(header, file);
   }
 
+  /**
+   * Get a chunk info item.
+   *
+   * @param header
+   *     the header to extract the info from.
+   * @param chunkNumber
+   *     the chunk number to extract.
+   * @return the ZChunk if it was found.
+   * @throws IllegalArgumentException
+   *     if the chunk was not found.
+   */
+  public static ZChunkHeaderChunkInfo getChunkInfo(final ZChunkHeader header, final long chunkNumber) {
+    return header.getIndex().getChunkInfoSortedByIndex().stream()
+        .filter(currChunk -> currChunk.getCurrentIndex() == chunkNumber)
+        .findFirst().orElseThrow(IllegalArgumentException::new);
+  }
+
+  public static byte[] getDecompressedDict(final ZChunkHeader header, final File input) {
+    final long offset = OffsetUtil.getDictOffset(header);
+    final CompressionAlgorithm compressionAlgorithm = header.getPreface().getCompressionAlgorithm();
+    final BiFunction<InputStream, byte[], InputStream> decompressor = compressionAlgorithm.getOutputStreamSupplier();
+
+    try (
+        final FileInputStream fis = new FileInputStream(input);
+        final InputStream decompressedStream = decompressor.apply(fis, new byte[0])
+    ) {
+      fis.skip(offset);
+      final byte[] dictBuffer = new byte[header.getIndex().getUncompressedDictLength().getIntValue()];
+      decompressedStream.read(dictBuffer);
+      return dictBuffer;
+    } catch (final IOException ioEx) {
+      final String message = String.format("Unable to read dictionary at offset [%d] from file [%s].", offset, input.getAbsolutePath());
+      throw new IllegalArgumentException(message);
+    }
+
+  }
+
+  public static InputStream getDecompressedChunk(final ZChunkHeader header,
+                                                 final File testFile,
+                                                 final byte[] dict,
+                                                 final long chunkNumber) throws IOException {
+    final long chunkOffset = OffsetUtil.getChunkOffset(header, chunkNumber);
+    final ZChunkHeaderChunkInfo chunk = getChunkInfo(header, chunkNumber);
+    final CompressionAlgorithm compressionAlgorithm = header.getPreface().getCompressionAlgorithm();
+    final BiFunction<InputStream, byte[], InputStream> decompressor = compressionAlgorithm.getOutputStreamSupplier();
+
+    // including skip
+    final long compressedBytesReadLimit = chunkOffset + chunk.getChunkLength().getLongValue();
+    final BoundedInputStream fis = new BoundedInputStream(new FileInputStream(testFile), compressedBytesReadLimit);
+    fis.skip(chunkOffset);
+
+    return decompressor.apply(fis, dict);
+  }
 }

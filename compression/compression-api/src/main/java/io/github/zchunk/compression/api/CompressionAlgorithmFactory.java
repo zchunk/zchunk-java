@@ -19,6 +19,7 @@ package io.github.zchunk.compression.api;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 
+import io.github.zchunk.compressedint.CompressedInt;
 import io.github.zchunk.compression.algo.unknown.UnknownAlgorithm;
 import io.github.zchunk.compression.api.internal.ReflectionUtil;
 import java.util.AbstractMap;
@@ -43,7 +44,7 @@ public final class CompressionAlgorithmFactory {
 
   private static Map.@Nullable Entry<Long, Class<CompressionAlgorithm>> mapEntryOrNull(final Class<CompressionAlgorithm> clazz) {
     return ReflectionUtil.newInstance(clazz)
-        .map(compInstance -> new AbstractMap.SimpleEntry<>(compInstance.getCompressionTypeValue().getLongValue(), clazz))
+        .map(compInstance -> new AbstractMap.SimpleEntry<>(compInstance.getCompressionTypeValue().getUnsignedLongValue(), clazz))
         .orElse(null);
   }
 
@@ -70,6 +71,10 @@ public final class CompressionAlgorithmFactory {
 
   private static Map<Long, Class<CompressionAlgorithm>> getTypeMappings() {
     return ResourceHolder.newInstance(ROOT_PACKAGE).getTypeMapping();
+  }
+
+  public static CompressionAlgorithm forType(final CompressedInt compressedInt) {
+    return forType(compressedInt.getLongValue());
   }
 
 

@@ -58,6 +58,7 @@ public final class ReflectionUtil {
           .flatMap(Collection::stream)
           .collect(toList());
     } catch (final IOException ioEx) {
+      LOG.log(Level.SEVERE, ioEx, () -> String.format("Unable to load classes in root package [%s].", rootPackage));
       return emptyList();
     }
   }
@@ -106,10 +107,12 @@ public final class ReflectionUtil {
   private static <T> Optional<Class<T>> loadClass(final String packageName, final Class<T> clazzType, final File file) {
     try {
       final Class<?> aClass = Class.forName(packageName + '.' + file.getName().substring(0, file.getName().length() - 6));
-      if (classImplementsCompressionAlgorithm(clazzType).test(aClass)) {
+      final boolean classImplementsType = classImplementsCompressionAlgorithm(clazzType).test(aClass);
+
+      if (classImplementsType) {
         @SuppressWarnings("unchecked")
         final Class<T> castedClass = (Class<T>) aClass;
-        return Optional.ofNullable(castedClass);
+        return Optional.of(castedClass);
       }
     } catch (final ClassNotFoundException e) {
       LOG.log(Level.WARNING, e, () -> String.format("Class file [%s] found, but unable to create instance.", file.getAbsolutePath()));
@@ -143,7 +146,7 @@ public final class ReflectionUtil {
   }
 
   public static <T> Predicate<Class<?>> classImplementsCompressionAlgorithm(final Class<T> type) {
-    return clazz -> getListFromArray(type.getInterfaces()).contains(type);
+    return clazz -> getListFromArray(clazz.getInterfaces()).contains(type);
   }
 
 }

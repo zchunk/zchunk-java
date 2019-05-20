@@ -19,8 +19,9 @@ package io.github.zchunk.compression.algo.unknown;
 import io.github.zchunk.compressedint.CompressedInt;
 import io.github.zchunk.compressedint.CompressedIntFactory;
 import io.github.zchunk.compression.api.CompressionAlgorithm;
+import io.github.zchunk.compression.api.err.DecompressionException;
 import java.io.InputStream;
-import java.util.function.Function;
+import java.util.function.BiFunction;
 
 public class UnknownAlgorithm implements CompressionAlgorithm {
 
@@ -35,7 +36,7 @@ public class UnknownAlgorithm implements CompressionAlgorithm {
   }
 
   @Override
-  public Function<InputStream, InputStream> getOutputStreamSupplier() {
-    throw new UnsupportedOperationException("not implemented");
+  public BiFunction<InputStream, byte[], InputStream> getOutputStreamSupplier() {
+    throw new DecompressionException("Could not a valid decompressor implementation.");
   }
 }

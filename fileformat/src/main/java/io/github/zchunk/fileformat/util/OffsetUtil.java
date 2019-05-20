@@ -89,4 +89,8 @@ public final class OffsetUtil {
     return totalHeaderSize + dictLength.getLongValue() + chunkOffset;
   }
 
+  public static long getDictOffset(final ZChunkHeader zChunkHeader) {
+    return getTotalHeaderSize(zChunkHeader.getLead());
+  }
+
 }

@@ -57,3 +57,9 @@ cache:
     - "$HOME/.m2/repository"
     - "$HOME/.jabba/jdk"
 
+# Do not cache built artifacts.
+before_cache:
+  - rm -f "$HOME/.m2/repository/io/github/zchunk"
+  # Legacy path
+  - rm -f "$HOME/.m2/repository/de/bmarwell/zchunk"
+

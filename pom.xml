@@ -35,8 +35,10 @@
     <module>compression/compression-zstd</module>
 
     <module>fileformat</module>
+    <!-- todo: app/zck, app/unzck, app/zck_read_header -->
 
-    <module>bundle</module>
+    <module>bundle/lib</module>
+    <!-- todo: bundle/app -->
   </modules>
 
   <properties>

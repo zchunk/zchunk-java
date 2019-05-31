@@ -96,7 +96,23 @@ public final class ZChunk {
       final String message = String.format("Unable to read dictionary at offset [%d] from file [%s].", offset, input.getAbsolutePath());
       throw new IllegalArgumentException(message);
     }
+  }
 
+  public static InputStream getDecompressedDictStream(final ZChunkHeader header, final File input) {
+    final long offset = OffsetUtil.getDictOffset(header);
+    final CompressionAlgorithm compressionAlgorithm = header.getPreface().getCompressionAlgorithm();
+    final BiFunction<InputStream, byte[], InputStream> decompressor = compressionAlgorithm.getOutputStreamSupplier();
+
+    try {
+      final FileInputStream fis = new FileInputStream(input);
+      final InputStream decompressedStream = decompressor.apply(fis, new byte[0]);
+      fis.skip(offset);
+
+      return new BoundedInputStream(decompressedStream, header.getIndex().getUncompressedDictLength().getIntValue());
+    } catch (final IOException ioEx) {
+      final String message = String.format("Unable to read dictionary at offset [%d] from file [%s].", offset, input.getAbsolutePath());
+      throw new IllegalArgumentException(message);
+    }
   }
 
   public static InputStream getDecompressedChunk(final ZChunkHeader header,

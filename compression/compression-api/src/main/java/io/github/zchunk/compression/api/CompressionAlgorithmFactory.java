@@ -109,10 +109,10 @@ public final class CompressionAlgorithmFactory {
       final ServiceLoader<CompressionAlgorithm> load = ServiceLoader.load(CompressionAlgorithm.class);
       final Logger logger = Logger.getLogger("io.github.zchunk");
 
-      logger.info("ServiceLoader: " + load);
+      logger.finest("ServiceLoader: " + load);
 
       return StreamSupport.stream(load.spliterator(), false)
-          .peek(clazz2 -> logger.info("Class: " + clazz2.getClass()))
+          .peek(clazz2 -> logger.finer("Class: " + clazz2.getClass()))
           .collect(Collectors.toList());
     }
 

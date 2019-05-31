@@ -230,4 +230,18 @@ public final class ChecksumUtil {
       return false;
     }
   }
+
+  public static byte[] calculateFileChecksum(final File input, final MessageDigest digest) throws IOException {
+    final byte[] buffer = new byte[BUFFER_SIZE];
+
+    try (final FileInputStream fis = new FileInputStream(input)) {
+      int readCount;
+
+      while ((readCount = fis.read(buffer)) != -1) {
+        digest.update(buffer, 0, readCount);
+      }
+
+      return digest.digest();
+    }
+  }
 }

@@ -36,7 +36,6 @@ install:
 stages:
   - validations
   - test
-  - java11
 
 jobs:
   include:

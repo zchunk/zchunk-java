@@ -16,7 +16,7 @@ Before creating pull requests, please tick these checkboxes in your mind:
  - [ ] If this is a PR for a issue, please name it issues/# (e.g. issues/3).
  - [ ] Before commiting and creating the PR, please execute:
    - [ ] ./mvnw clean install -DskipTests=true -Pcheckstyle,checker
-   - [ ] ./mvnw -T4 clean install javadoc:jar sources:jar
+   - [ ] ./mvnw -T4 clean install javadoc:jar source:jar
    
 If it doesn't compile, please fix the errors first. Thank you :)
    

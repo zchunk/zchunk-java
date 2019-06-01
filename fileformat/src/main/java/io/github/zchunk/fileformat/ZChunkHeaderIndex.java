@@ -20,7 +20,7 @@ import io.github.zchunk.compressedint.CompressedInt;
 import io.github.zchunk.fileformat.util.ByteUtils;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
+import java.util.SortedSet;
 import java.util.StringJoiner;
 import java.util.TreeSet;
 import java.util.function.Supplier;
@@ -89,8 +89,8 @@ public abstract class ZChunkHeaderIndex {
   public abstract Map<byte[], ZChunkHeaderChunkInfo> getChunkInfo();
 
   @Value.Lazy
-  public Set<ZChunkHeaderChunkInfo> getChunkInfoSortedByIndex() {
-    final Supplier<Set<ZChunkHeaderChunkInfo>> IndexSortedList = () -> new TreeSet<>(ZChunkHeaderChunkInfo.INDEX_COMPARATOR);
+  public SortedSet<ZChunkHeaderChunkInfo> getChunkInfoSortedByIndex() {
+    final Supplier<SortedSet<ZChunkHeaderChunkInfo>> IndexSortedList = () -> new TreeSet<>(ZChunkHeaderChunkInfo.INDEX_COMPARATOR);
 
     return getChunkInfo().values()
         .stream()

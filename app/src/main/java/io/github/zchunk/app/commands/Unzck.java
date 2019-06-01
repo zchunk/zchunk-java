@@ -20,14 +20,19 @@ import io.github.zchunk.app.ZChunkFilename;
 import io.github.zchunk.app.err.UncompressException;
 import io.github.zchunk.fileformat.ZChunk;
 import io.github.zchunk.fileformat.ZChunkFile;
+import io.github.zchunk.fileformat.ZChunkHeader;
+import io.github.zchunk.fileformat.ZChunkHeaderChunkInfo;
+import io.github.zchunk.fileformat.ZChunkHeaderIndex;
 import io.github.zchunk.fileformat.util.IOUtil;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.SortedSet;
 import java.util.StringJoiner;
 import java.util.concurrent.Callable;
+import java.util.logging.Logger;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
@@ -37,6 +42,8 @@ import picocli.CommandLine.Parameters;
          name = "unzck",
          mixinStandardHelpOptions = true)
 public class Unzck implements Callable<Integer> {
+
+  private static final Logger LOG = Logger.getLogger(Unzck.class.getCanonicalName());
 
   @Option(names = {"-c", "--stdout"})
   private boolean toStdOut;
@@ -54,16 +61,64 @@ public class Unzck implements Callable<Integer> {
   @Override
   public Integer call() {
     final ZChunkFile zChunkFile = ZChunk.fromFile(this.inputFile);
+
     if (this.dictOnly) {
       return decompressDict(zChunkFile);
     }
 
-    return -1;
+    return decompressFile(zChunkFile);
+  }
+
+  private int decompressFile(final ZChunkFile zChunkFile) {
+    final File target = getTargetFile();
+
+    try (final FileOutputStream fileOutputStream = new FileOutputStream(target)) {
+      final File targetDir = target.getAbsoluteFile().getParentFile();
+      if (null == targetDir) {
+        throw new IllegalStateException("TargetDir Parent is null: [" + target.getAbsolutePath() + "].");
+      }
+      targetDir.mkdirs();
+      target.createNewFile();
+
+      final ZChunkHeader zChunkFileHeader = zChunkFile.getHeader();
+      final ZChunkHeaderIndex zChunkHeaderIndex = zChunkFileHeader.getIndex();
+      if (zChunkHeaderIndex.getDictLength().getIntValue() == 0) {
+        throw new UnsupportedOperationException("TODO: uncompress without dict");
+      }
+
+      final byte[] decompressedDict = ZChunk.getDecompressedDict(zChunkFileHeader, this.inputFile);
+
+      uncompressChunks(fileOutputStream, zChunkFileHeader, decompressedDict);
+
+    } catch (final FileNotFoundException fnfe) {
+      throw new UncompressException("Unable to create parent dir or file: [" + target.getAbsolutePath() + "].", fnfe);
+    } catch (final IOException ex) {
+      throw new UncompressException("Unable to write file: [" + target.getAbsolutePath() + "].", ex);
+    }
+
+    return 0;
+  }
+
+  private void uncompressChunks(final FileOutputStream fileOutputStream,
+                                final ZChunkHeader zChunkFileHeader,
+                                final byte[] decompressedDict) throws IOException {
+    final SortedSet<ZChunkHeaderChunkInfo> chunks = zChunkFileHeader.getIndex().getChunkInfoSortedByIndex();
+
+    // TODO: This can be optimized using random access file and parallel writing.
+    for (final ZChunkHeaderChunkInfo chunk : chunks) {
+      LOG.finest("Working on chunk [" + chunk + "].");
+      final InputStream decompressedChunk = ZChunk.getDecompressedChunk(
+          zChunkFileHeader,
+          this.inputFile,
+          decompressedDict,
+          chunk.getCurrentIndex());
+      IOUtil.copy(decompressedChunk, fileOutputStream);
+    }
   }
 
   private int decompressDict(final ZChunkFile zChunkFile) {
     final File target = getTargetFile();
-    try {
+    try (final FileOutputStream fileOutputStream = new FileOutputStream(target)) {
       final File targetDir = target.getAbsoluteFile().getParentFile();
       if (null == targetDir) {
         throw new IllegalStateException("TargetDir Parent is null: [" + target.getAbsolutePath() + "].");
@@ -71,7 +126,6 @@ public class Unzck implements Callable<Integer> {
       targetDir.mkdirs();
       target.createNewFile();
       final InputStream decompressedDictStream = ZChunk.getDecompressedDictStream(zChunkFile.getHeader(), this.inputFile);
-      final FileOutputStream fileOutputStream = new FileOutputStream(target);
       final int copied = IOUtil.copy(decompressedDictStream, fileOutputStream);
 
     } catch (final FileNotFoundException fnfe) {
@@ -88,7 +142,11 @@ public class Unzck implements Callable<Integer> {
       return this.outputFile;
     }
 
-    return ZChunkFilename.getDictFile(this.inputFile);
+    if (this.dictOnly) {
+      return ZChunkFilename.getDictFile(this.inputFile);
+    }
+
+    return ZChunkFilename.getNormalFile(this.inputFile);
   }
 
   public boolean isToStdOut() {

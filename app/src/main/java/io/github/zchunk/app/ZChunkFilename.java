@@ -41,4 +41,13 @@ public final class ZChunkFilename {
     return new File(newName);
   }
 
+  public static File getNormalFile(final File zchunkFile) {
+    if (!zchunkFile.getName().endsWith(".zck")) {
+      throw new UnsupportedOperationException("Cannot acquire target file name");
+    }
+
+    final String newName = zchunkFile.getName().replaceAll("^(.*)\\.zck$", "$1");
+
+    return new File(newName);
+  }
 }

@@ -53,7 +53,33 @@ public class UnzckTest {
     final byte[] bytes = ChecksumUtil.calculateFileChecksum(targetFile, md5);
     final String foundMd5 = new BigInteger(1, bytes).toString(16);
 
+    // gotten by running the original unzck and then md5sum.
     Assertions.assertEquals("e051cbdf211c13bead2009e49b3317f5", foundMd5);
+  }
+
+  @Test
+  public void testUnzckFile() throws NoSuchAlgorithmException, IOException {
+    final ClassLoader classLoader = getClass().getClassLoader();
+    final String pathToFiles = classLoader.getResource("files").getFile();
+
+    final File input = new File(pathToFiles, "LICENSE.dict.fodt.zck");
+    Assertions.assertTrue(input.exists());
+    Assertions.assertTrue(input.isFile());
+    Assertions.assertTrue(input.canRead());
+
+    LOG.finer("File found: " + input.getAbsolutePath());
+    final File targetFile = new File(pathToFiles, "LICENSE.dict.fodt");
+    final Unzck unzck = new Unzck();
+    unzck.setInputFile(input);
+    unzck.setOutputFile(targetFile);
+    unzck.call();
+
+    final MessageDigest md5 = MessageDigest.getInstance("md5");
+    final byte[] bytes = ChecksumUtil.calculateFileChecksum(targetFile, md5);
+    final String foundMd5 = new BigInteger(1, bytes).toString(16);
+
+    // gotten by running the original unzck and then md5sum.
+    Assertions.assertEquals("92236dfc074fa2db49a6345f71b51b9e", foundMd5);
   }
 
 }

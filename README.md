@@ -20,14 +20,20 @@ downloaded is, in fact, the file you wanted.
 
 ## What is the goal of this project?
 
+The goal is to create a pure java implementation of the zchunk file format.
+This way, java programs or Android apps will be able to use the zchunk file format. 
 
 
-## What dependencies do I need?
+## Which dependencies do I need?
 
 **zchunk-java** can be used *without any* transitives dependencies/libraries.
 
-However, to have support for compression, you should use the arteifact `zchunk-all` (TBD), which also
+However, to have support for compression, you should use the arteifact `zchunk-bundle-lib` (TBD), which also
 pulls in support for `zstd` compression and maybe other compressions later.
+
+The command line application (`zchunk-app`) is another matter. It uses `picocli` for parsing command lines,
+but other than that, it does not have any new dependencies. Since `picocli` is bundled with the app in an
+executable `one-jar`, there is no manual copying of dependencies.
 
 
 ## Runtime Requirements and usage

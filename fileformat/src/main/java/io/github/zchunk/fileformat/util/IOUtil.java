@@ -16,6 +16,7 @@
 
 package io.github.zchunk.fileformat.util;
 
+import java.io.DataOutput;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -30,6 +31,24 @@ public final class IOUtil {
   }
 
   public static int copy(final InputStream in, final OutputStream out) throws IOException {
+    final byte[] buffer = new byte[BUFFER_SIZE];
+    int readCount;
+    int totalWritten = 0;
+
+    while ((readCount = in.read(buffer)) != EOF) {
+      out.write(buffer, 0, readCount);
+      totalWritten += readCount;
+
+      if (readCount < BUFFER_SIZE) {
+        // end reached.
+        break;
+      }
+    }
+
+    return totalWritten;
+  }
+
+  public static int copy(final InputStream in, final DataOutput out) throws IOException {
     final byte[] buffer = new byte[BUFFER_SIZE];
     int readCount;
     int totalWritten = 0;

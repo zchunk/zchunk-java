@@ -20,9 +20,11 @@ import io.github.zchunk.compressedint.CompressedInt;
 import io.github.zchunk.fileformat.OptionalElement;
 import io.github.zchunk.fileformat.ZChunkHeader;
 import io.github.zchunk.fileformat.ZChunkHeaderChunkInfo;
+import io.github.zchunk.fileformat.ZChunkHeaderIndex;
 import io.github.zchunk.fileformat.ZChunkHeaderLead;
 import io.github.zchunk.fileformat.ZChunkHeaderPreface;
 import java.math.BigInteger;
+import java.util.SortedSet;
 
 public final class OffsetUtil {
 
@@ -97,4 +99,11 @@ public final class OffsetUtil {
     return getTotalHeaderSize(zChunkHeader.getLead());
   }
 
+  public static long getDecompressedChunkOffset(final ZChunkHeaderIndex index, final ZChunkHeaderChunkInfo chunk) {
+    final SortedSet<ZChunkHeaderChunkInfo> chunks = index.getChunkInfoSortedByIndex();
+    return chunks.stream().limit(chunk.getCurrentIndex())
+        .map(ZChunkHeaderChunkInfo::getChunkUncompressedLength)
+        .mapToLong(CompressedInt::getLongValue)
+        .sum();
+  }
 }

@@ -18,21 +18,25 @@ package io.github.zchunk.app.commands;
 
 import io.github.zchunk.app.ZChunkFilename;
 import io.github.zchunk.app.err.UncompressException;
+import io.github.zchunk.compressedint.CompressedInt;
 import io.github.zchunk.fileformat.ZChunk;
 import io.github.zchunk.fileformat.ZChunkFile;
 import io.github.zchunk.fileformat.ZChunkHeader;
 import io.github.zchunk.fileformat.ZChunkHeaderChunkInfo;
 import io.github.zchunk.fileformat.ZChunkHeaderIndex;
 import io.github.zchunk.fileformat.util.IOUtil;
+import io.github.zchunk.fileformat.util.OffsetUtil;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.RandomAccessFile;
 import java.nio.file.Files;
 import java.util.SortedSet;
 import java.util.StringJoiner;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -74,7 +78,7 @@ public class Unzck implements Callable<Integer> {
   private int decompressFile(final ZChunkFile zChunkFile) {
     final File target = getTargetFile();
 
-    try (final FileOutputStream fileOutputStream = new FileOutputStream(target)) {
+    try {
       final File targetDir = target.getAbsoluteFile().getParentFile();
       if (null == targetDir) {
         throw new IllegalStateException("TargetDir Parent is null: [" + target.getAbsolutePath() + "].");
@@ -90,7 +94,7 @@ public class Unzck implements Callable<Integer> {
 
       final byte[] decompressedDict = ZChunk.getDecompressedDict(zChunkFileHeader, this.inputFile);
 
-      uncompressChunks(fileOutputStream, zChunkFileHeader, decompressedDict);
+      uncompressChunks(target, zChunkFileHeader, decompressedDict);
 
     } catch (final FileNotFoundException fnfe) {
       cleanPartialFile(target);
@@ -103,21 +107,47 @@ public class Unzck implements Callable<Integer> {
     return 0;
   }
 
-  private void uncompressChunks(final FileOutputStream fileOutputStream,
+  private void uncompressChunks(final File targetFile,
                                 final ZChunkHeader zChunkFileHeader,
                                 final byte[] decompressedDict) throws IOException {
     final SortedSet<ZChunkHeaderChunkInfo> chunks = zChunkFileHeader.getIndex().getChunkInfoSortedByIndex();
 
-    // TODO: This can be optimized using random access file and parallel writing.
-    for (final ZChunkHeaderChunkInfo chunk : chunks) {
-      LOG.finest("Working on chunk [" + chunk + "].");
-      final InputStream decompressedChunk = ZChunk.getDecompressedChunk(
-          zChunkFileHeader,
-          this.inputFile,
-          decompressedDict,
-          chunk.getCurrentIndex());
-      IOUtil.copy(decompressedChunk, fileOutputStream);
+    final RandomAccessFile accessFile = new RandomAccessFile(targetFile, "rwd");
+    final long totalLength = zChunkFileHeader.getIndex().getChunkInfoSortedByIndex().stream()
+        .map(ZChunkHeaderChunkInfo::getChunkUncompressedLength)
+        .mapToLong(CompressedInt::getLongValue)
+        .sum();
+    accessFile.setLength(totalLength);
+
+    CompletableFuture.allOf(
+        chunks.parallelStream()
+            .map(chunk -> CompletableFuture.runAsync(() -> writeChunk(targetFile, chunk, zChunkFileHeader, decompressedDict)))
+            .toArray(CompletableFuture[]::new)
+    ).join();
+  }
+
+  private void writeChunk(final File targetFile,
+                          final ZChunkHeaderChunkInfo chunk,
+                          final ZChunkHeader zChunkFileHeader,
+                          final byte[] decompressedDict) {
+    final long decompressedChunkOffset = OffsetUtil.getDecompressedChunkOffset(zChunkFileHeader.getIndex(), chunk);
+
+    try (final InputStream decompressedChunk = ZChunk.getDecompressedChunk(
+        zChunkFileHeader,
+        this.inputFile,
+        decompressedDict,
+        chunk.getCurrentIndex());
+        final RandomAccessFile outputStream = new RandomAccessFile(targetFile, "rw")) {
+      outputStream.seek(decompressedChunkOffset);
+      IOUtil.copy(decompressedChunk, outputStream);
+    } catch (final IOException ex) {
+      final String message = String.format("Unable to decompress chunk[%s] to File [%s] at position [%d].",
+          chunk,
+          targetFile.getAbsolutePath(),
+          decompressedChunkOffset);
+      throw new UncompressException(message, ex);
     }
+
   }
 
   private int decompressDict(final ZChunkFile zChunkFile) {

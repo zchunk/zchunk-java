@@ -29,9 +29,11 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.util.SortedSet;
 import java.util.StringJoiner;
 import java.util.concurrent.Callable;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import picocli.CommandLine.Command;
@@ -91,8 +93,10 @@ public class Unzck implements Callable<Integer> {
       uncompressChunks(fileOutputStream, zChunkFileHeader, decompressedDict);
 
     } catch (final FileNotFoundException fnfe) {
+      cleanPartialFile(target);
       throw new UncompressException("Unable to create parent dir or file: [" + target.getAbsolutePath() + "].", fnfe);
     } catch (final IOException ex) {
+      cleanPartialFile(target);
       throw new UncompressException("Unable to write file: [" + target.getAbsolutePath() + "].", ex);
     }
 
@@ -129,12 +133,24 @@ public class Unzck implements Callable<Integer> {
       final int copied = IOUtil.copy(decompressedDictStream, fileOutputStream);
 
     } catch (final FileNotFoundException fnfe) {
+      cleanPartialFile(target);
       throw new UncompressException("Unable to create parent dir or file: [" + target.getAbsolutePath() + "].", fnfe);
     } catch (final IOException ex) {
+      cleanPartialFile(target);
       throw new UncompressException("Unable to write file: [" + target.getAbsolutePath() + "].", ex);
     }
 
     return 0;
+  }
+
+  private void cleanPartialFile(final File target) {
+    if (target.exists()) {
+      try {
+        Files.delete(target.toPath());
+      } catch (final IOException ioEx) {
+        LOG.log(Level.WARNING, ioEx, () -> "unable to delete file [" + target.getAbsolutePath() + "].");
+      }
+    }
   }
 
   private File getTargetFile() {

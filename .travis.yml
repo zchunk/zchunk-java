@@ -42,9 +42,10 @@ jobs:
     - stage: validations
       name: "Code validations (checkstyle)"
       script: ./mvnw -V -B clean install -DskipTests=true -Pcheckstyle
-    - stage: validations
-      name: "Checker framework (Nullness checker)."
-      script: ./mvnw -V -B clean install -DskipTests=true -Pchecker
+      #    Disabled because checker constantly crashes.
+      #    - stage: validations
+      #      name: "Checker framework (Nullness checker)."
+      #      script: ./mvnw -V -B clean install -DskipTests=true -Pchecker
 
     - stage: test
       name: "Test build with coverage report"

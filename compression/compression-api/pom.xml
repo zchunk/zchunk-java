@@ -45,7 +45,7 @@
         </dependency>
 
         <dependency>
-            <groupId>org.checkerframework</groupId>
+            <groupId>io.github.eisop</groupId>
             <artifactId>checker-qual</artifactId>
             <scope>provided</scope>
         </dependency>
